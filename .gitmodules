@@ -1,0 +1,3 @@
+[submodule "HomeAutomationModulePCBLayout"]
+	path = HomeAutomationModulePCBLayout
+	url = git@github.com:bloveless/HomeAutomationModulePCBLayout.git
