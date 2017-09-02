@@ -1,0 +1,1 @@
+[{"model": "api.service", "pk": 1, "fields": {"name": "Hex"}}, {"model": "api.service", "pk": 2, "fields": {"name": "Range"}}, {"model": "api.service", "pk": 3, "fields": {"name": "Toggle"}}, {"model": "api.service", "pk": 4, "fields": {"name": "Read"}}]

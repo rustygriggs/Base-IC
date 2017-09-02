@@ -1,6 +1,0 @@
-[submodule "HomeAutomationModulePCBLayout"]
-	path = HomeAutomationModulePCBLayout
-	url = git@github.com:bloveless/HomeAutomationModulePCBLayout.git
-[submodule "Base-IC-Server"]
-	path = Base-IC-Server
-	url = git@github.com:bloveless/Base-IC-Server.git
