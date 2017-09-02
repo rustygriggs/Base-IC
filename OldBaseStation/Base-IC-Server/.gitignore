@@ -1,0 +1,3 @@
+*.pyc
+db/base-ic.db
+__pycache__
