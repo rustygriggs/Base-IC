@@ -133,3 +133,6 @@ class ZigbeeSerial:
         else:
             # If this is a setup command then just print the data.
             print(data)
+
+    def send_packet(self, address, body):
+        self.xbee.send('tx', dest_addr_long=bytearray.fromhex(address), data=body.encode('UTF-8'))

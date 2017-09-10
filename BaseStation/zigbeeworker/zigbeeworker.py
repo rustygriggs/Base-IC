@@ -9,6 +9,7 @@ http://asynqp.readthedocs.io/en/v0.4/examples.html#reconnecting
 """
 import asyncio
 import asynqp
+import json
 from asyncio.futures import InvalidStateError
 from zigbeeserial import ZigbeeSerial
 from queue import Queue
@@ -48,7 +49,13 @@ async def setup_exchange_and_queue(connection):
 async def setup_consumer(connection):
     # callback will be called each time a message is received from the queue
     def callback(msg):
-        print('Received: {}'.format(msg.body))
+        parsed_data = json.loads(msg.body.decode())
+        # There are two pieces of information in the parsed_data.
+        # The first is the address and the second is the body.
+        print('Send {} to address {}'.format(parsed_data['body'], parsed_data['address']))
+        # Just put it on the zigbee tx queue and the ZigbeeSerial will take care of the rest.
+        xbee.send_packet(parsed_data['address'], parsed_data['body'])
+        # Acknowledge the packet to Rabbit can remove it.
         msg.ack()
 
     _, zigbee_queue, _ = await setup_exchange_and_queue(connection)
@@ -106,13 +113,11 @@ async def monitor_queue(connection):
     exchange, zigbee_queue, api_worker_queue = await setup_exchange_and_queue(connection)
 
     while True:
-        print("Queue length: {}".format(rx_queue.qsize()))
+        print("RX Queue length: {}".format(rx_queue.qsize()))
 
-        # TODO: if a queue length is detected then we received something from the ZigBee
+        # If a queue length is detected then we received something from the ZigBee
         # and we need to send that message to RabbitMQ and remove it from the queue.
-
         if not rx_queue.empty():
-            # print(rxQueue.get_nowait())
             msg = asynqp.Message(rx_queue.get())
             exchange.publish(msg, 'route.api-worker')
 
