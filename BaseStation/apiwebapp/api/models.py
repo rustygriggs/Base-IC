@@ -20,3 +20,27 @@ class Peripheral(models.Model):
 
     class Meta:
         unique_together = ('queue', 'address')
+
+
+class Workflow(models.Model):
+    from_peripheral = models.ForeignKey(Peripheral, related_name="from_peripheral", on_delete=models.DO_NOTHING)
+    from_service = models.ForeignKey(Service, related_name="from_service", on_delete=models.DO_NOTHING)
+    from_service_number = models.IntegerField(name="from_service_number")
+    from_value = models.CharField(max_length=500)
+    to_peripheral = models.ForeignKey(Peripheral, related_name="to_peripheral", on_delete=models.DO_NOTHING)
+    to_service = models.ForeignKey(Service, related_name="to_service", on_delete=models.DO_NOTHING)
+    to_service_number = models.IntegerField(name="to_service_number")
+    to_value = models.CharField(max_length=500)
+
+    def __str__(self):
+        return "From Peripheral \"{}\" Service \"{}\" Service Number \"{}\" Value \"{}\" " \
+               "- To Peripheral \"{}\" Service \"{}\" Service Number \"{}\" Value \"{}\"".format(
+            self.from_peripheral,
+            self.from_service,
+            self.from_service_number,
+            self.from_value,
+            self.to_peripheral,
+            self.to_service,
+            self.to_service_number,
+            self.to_value
+        )

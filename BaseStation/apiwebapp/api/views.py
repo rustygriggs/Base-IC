@@ -1,8 +1,10 @@
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 from django.views.generic import View
-from .serializers import PeripheralSerializer
-from .models import Peripheral, Service
+from .serializers import PeripheralSerializer, WorkflowSerializer
+from .models import Peripheral, Service, Workflow
+from .validator import Validator
 import json
+from .remote_queue import RemoteQueue
 
 
 # Create your views here.
@@ -29,25 +31,10 @@ class PeripheralView(View):
         """
 
         parsed_data = json.loads(request.body.decode())
-        errors = []
 
-        # Make sure that address, name, and queue are in the request data.
-        if 'address' not in parsed_data or not parsed_data['address']:
-            errors.append("'address' must be provided and have a value.")
-
-        if 'name' not in parsed_data or not parsed_data['name']:
-            errors.append("'name' must be provided and have a value.")
-
-        if 'queue' not in parsed_data or not parsed_data['queue']:
-            errors.append("'queue' must be provided and have a value.")
-
-        if 'services' in parsed_data and not len(parsed_data['services']):
-            errors.append("If 'services' is present it cannot be empty.")
-
-        # If there are any errors then we cannot continue.
-        if len(errors):
-            message = {'success': False, 'errors': errors}
-            return HttpResponseBadRequest(json.dumps(message))
+        v = Validator(parsed_data, ['queue', 'address', 'name', 'services'])
+        if v.has_errors():
+            return HttpResponseBadRequest(v.get_message())
 
         # Now we have all the data that we need to create or lookup a peripheral.
         try:
@@ -77,27 +64,43 @@ class PeripheralDetailsView(View):
         This will list a single peripheral from a parameter in the url called PK
         """
 
-        errors = []
-
-        if 'queue' not in kwargs or not kwargs['queue']:
-            errors.append("'queue' must be provided and have a value.")
-
-        if 'address' not in kwargs or not kwargs['address']:
-            errors.append("'address' must be provided and have a value.")
-
-        if len(errors):
-            message = {'success': False, 'errors': errors}
-            return HttpResponseBadRequest(json.dumps(message))
-
-        print(kwargs)
+        v = Validator(kwargs, ['queue', 'address'])
+        if v.has_errors():
+            return HttpResponseBadRequest(v.get_message())
 
         return HttpResponse("This is a get request")
 
+
+class PeripheralActionView(View):
     def post(self, request):
         """
-        This will assign services to a peripheral. It will take a list of services from the post
-        request and assign them one by one to the peripheral. It will also have to delete services
-        that were not present in the post request.
+        This will receive an action from a peripheral and add any results from the workflow's
+        table to Rabbit
         """
 
-        return HttpResponse("This is a post request")
+        parsed_data = json.loads(request.body.decode())
+
+        v = Validator(parsed_data, ['queue', 'address', 'service', 'service_number', 'value'])
+        if v.has_errors():
+            return HttpResponseBadRequest(v.get_message())
+
+        # Find peripheral by queue and address
+        peripheral = Peripheral.objects.get(queue=parsed_data['queue'], address=parsed_data['address'])
+
+        # If the peripheral exists then lookup the results from the workflow table using the
+        # service ID, service number, and the service value
+        workflows = []
+        if peripheral:
+            workflows = Workflow.objects.filter(from_peripheral=peripheral,
+                                                from_service_id=parsed_data['service'],
+                                                from_service_number=parsed_data['service_number'],
+                                                from_value=parsed_data['value'])
+
+            if workflows:
+                # If we found any workflows attached to the received action then publish them to the remote queue.
+                RemoteQueue.publish_workflows_to_queue(workflows)
+
+        serializer = WorkflowSerializer(workflows, many=True)
+
+        message = {'success': True, 'workflows': serializer.data}
+        return JsonResponse(message, safe=False)
