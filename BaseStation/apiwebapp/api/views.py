@@ -110,11 +110,17 @@ class ProcessView(View):
                 peripheral_service_ids = set(peripheral_set.values_list('services__id', flat=True))
 
                 services_to_add = services - peripheral_service_ids
-                for service in services_to_add:
+                for service_number, service in enumerate(services_to_add):
                     try:
                         service = Service.objects.get(pk=service)
                         print("Adding service {}".format(service))
-                        peripheral.services.add(service)
+                        periperhal_service = PeripheralService(
+                            peripheral=peripheral,
+                            service=service,
+                            service_number=service_number,
+                            direction='I'
+                        )
+                        peripheral_service.save()
                     except Service.DoesNotExist:
                         message = {'success': False, 'message': 'Service with id "{}" does not exist'.format(service)}
                         return JsonResponse(message, safe=False)
@@ -124,6 +130,7 @@ class ProcessView(View):
                     try:
                         service = Service.objects.get(pk=service)
                         print("Removing service {}".format(service))
+
                         peripheral.services.remove(service)
                     except Service.DoesNotExist:
                         message = {'success': False, 'message': 'Service with id "{}" does not exist'.format(service)}
