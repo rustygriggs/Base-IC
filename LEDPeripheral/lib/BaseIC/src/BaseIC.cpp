@@ -106,7 +106,7 @@ void BaseIC::registerModule(uint8_t * name, uint8_t nameLength, uint8_t * servic
         Serial.println("Success. Time to celebrate");
         // flashLed(statusLed, 5, 50);
       } else {
-        Serial.println("Remove XBee did not receive our packet. Is it on?");
+        Serial.println("Remote XBee did not receive our packet. Is it on?");
         // flashLed(errorLed, 3, 500);
       }
     }
