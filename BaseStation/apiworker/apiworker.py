@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Example async consumer and publisher that will reconnect
 automatically when a connection to rabbitmq is broken and
@@ -10,13 +11,15 @@ http://asynqp.readthedocs.io/en/v0.4/examples.html#reconnecting
 
 import asyncio
 import asynqp
+import requests
+import json
 from asyncio.futures import InvalidStateError
 
 # Global variables are ugly, but this is a simple example
 CHANNELS = []
 CONNECTION = None
 CONSUMER = None
-PRODUCER = None
+URL = 'http://127.0.0.1:8000/api/v1/process/zigbee'
 
 
 async def setup_connection(loop):
@@ -50,29 +53,23 @@ async def setup_exchange_and_queue(connection):
 async def setup_consumer(connection):
     # callback will be called each time a message is received from the queue
     def callback(msg):
-        print('Received: {}'.format(msg.body))
+        # The body will contain an array that has data and an address. We will send that object
+        # to the api and let the API determine what to do with it.
+        print('Sending: {} to {}'.format(msg.body.decode(), URL))
+        # ACK the packet first
         msg.ack()
+        # Then send the packet to the API
+        r = requests.post(URL, json=json.loads(msg.body.decode()))
+        if r.status_code == 200:
+            print(repr(r.json()))
+        else:
+            print("Well that didn't work")
 
     _, _, api_worker_queue = await setup_exchange_and_queue(connection)
 
     # connect the callback to the queue
     consumer = await api_worker_queue.consume(callback)
     return consumer
-
-
-async def setup_producer(connection):
-    """
-    The producer will live as an asyncio.Task
-    to stop it call Task.cancel()
-    """
-    # exchange, _, _ = await setup_exchange_and_queue(connection)
-    #
-    # count = 0
-    # while True:
-    # msg = asynqp.Message('Message #{}'.format(count))
-    # exchange.publish(msg, 'route.zigbee-worker')
-    # await asyncio.sleep(1)
-    # count += 1
 
 
 async def start(loop):
@@ -83,11 +80,9 @@ async def start(loop):
     """
     global CONNECTION
     global CONSUMER
-    global PRODUCER
     try:
         CONNECTION = await setup_connection(loop)
         CONSUMER = await setup_consumer(CONNECTION)
-        PRODUCER = loop.create_task(setup_producer(CONNECTION))
     # Multiple exceptions may be thrown, ConnectionError, OsError
     except Exception:
         print('failed to connect, trying again.')
@@ -102,11 +97,9 @@ async def stop():
     """
     global CHANNELS
     global CONNECTION
-    global PRODUCER
     global CONSUMER
 
     await CONSUMER.cancel()  # this is a coroutine
-    PRODUCER.cancel()  # this is not
 
     for channel in CHANNELS:
         await channel.close()

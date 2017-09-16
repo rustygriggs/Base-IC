@@ -113,7 +113,8 @@ async def monitor_queue(connection):
     exchange, zigbee_queue, api_worker_queue = await setup_exchange_and_queue(connection)
 
     while True:
-        print("RX Queue length: {}".format(rx_queue.qsize()))
+        if rx_queue.qsize():
+            print("RX Queue length: {}".format(rx_queue.qsize()))
 
         # If a queue length is detected then we received something from the ZigBee
         # and we need to send that message to RabbitMQ and remove it from the queue.
@@ -156,7 +157,13 @@ if __name__ == '__main__':
     # The tx queue will be for any thing that needs to be sent over the serial device.
     tx_queue = Queue()
 
-    xbee = ZigbeeSerial(rx_queue, tx_queue, port="/dev/tty.usbserial-A603U21W")
+    xbee = None
+    try:
+        # Raspberry PI
+        xbee = ZigbeeSerial(rx_queue, tx_queue)
+    except:
+        # MacOS
+        xbee = ZigbeeSerial(rx_queue, tx_queue, port="/dev/tty.usbserial-A603U21W")
 
     task_loop = asyncio.get_event_loop()
     task_loop.set_exception_handler(connection_lost_handler)

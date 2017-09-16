@@ -58,6 +58,97 @@ class PeripheralView(View):
         return JsonResponse(message, safe=False)
 
 
+class ProcessView(View):
+    def post(self, request, *args, **kwargs):
+        """
+        This will process a request that is received through the API worker.
+        """
+
+        v = Validator(kwargs, ['queue'])
+        if v.has_errors():
+            return HttpResponseBadRequest(v.get_message())
+
+        parsed_data = json.loads(request.body.decode())
+        v = Validator(parsed_data, ['data', 'address'])
+        if v.has_errors():
+            return HttpResponseBadRequest(v.get_message())
+
+        # In order to be quick about this there is going to be a lot of code here.
+        # This should be moved into it's own class.
+
+        # Everytime we receive a process request it will contains two pieces of data.
+        # First will be the data, second will be the address. The queue will come from the URL.
+
+        data = parsed_data['data']
+        address = parsed_data['address']
+        queue = kwargs['queue']
+
+        # Data will contain an array that will be in the format according to our overleaf doc.
+
+        # First will be the registration command.
+        if data[0] == '0':
+            # We are registering a new device.
+            name = data[1]
+
+            # The rest of the indexes will be the provided services.
+            services = set()
+            for service in data[2:]:
+                # Each service will be an ID that relates to a specific service.
+                services.add(int(service))
+
+            try:
+                # Check to see if the peripheral already exists. If it does then lets do an update.
+                peripheral_set = Peripheral.objects.filter(address=address, queue=queue)
+                peripheral = peripheral_set.first()
+
+                # First we will update the name if it has changed
+                if peripheral.name != name:
+                    peripheral.name = name
+                    peripheral.save()
+
+                # Next we will get all the related services and add/remove them as necessary.
+                peripheral_service_ids = set(peripheral_set.values_list('services__id', flat=True))
+
+                services_to_add = services - peripheral_service_ids
+                for service in services_to_add:
+                    try:
+                        service = Service.objects.get(pk=service)
+                        print("Adding service {}".format(service))
+                        peripheral.services.add(service)
+                    except Service.DoesNotExist:
+                        message = {'success': False, 'message': 'Service with id "{}" does not exist'.format(service)}
+                        return JsonResponse(message, safe=False)
+
+                services_to_remove = peripheral_service_ids - services
+                for service in services_to_remove:
+                    try:
+                        service = Service.objects.get(pk=service)
+                        print("Removing service {}".format(service))
+                        peripheral.services.remove(service)
+                    except Service.DoesNotExist:
+                        message = {'success': False, 'message': 'Service with id "{}" does not exist'.format(service)}
+                        return JsonResponse(message, safe=False)
+
+            except Peripheral.DoesNotExist:
+                # We are creating a new peripheral.
+                peripheral = Peripheral(queue=queue, address=address, name=name)
+                peripheral.save()
+                
+                for service in data[2:]:
+                    try:
+                        service = Service.objects.get(pk=service)
+                        peripheral.services.add(service)
+                    except Service.DoesNotExist:
+                        message = {'success': False, 'message': 'Service with id "{}" does not exist'.format(service)}
+                        return JsonResponse(message, safe=False)
+
+                message = {'succes': True, 'message': 'Peripheral was created successfully'}
+                return JsonResponse(message, safe=False)
+
+        message = {'success': True, 'message': 'Got it!'}
+        return JsonResponse(message, safe=False)
+
+
 class PeripheralDetailsView(View):
     def get(self, request, *args, **kwargs):
         """
