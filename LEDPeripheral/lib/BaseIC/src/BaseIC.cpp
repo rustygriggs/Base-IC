@@ -37,7 +37,11 @@ void BaseIC::setNetworkID()
   sendATCommand(wrCmd);
 }
 
-void BaseIC::registerModule(uint8_t * name, uint8_t nameLength, uint8_t * services, uint8_t servicesCount)
+void BaseIC::registerModule(
+  uint8_t * name, uint8_t nameLength,
+  uint8_t * inputServices, uint8_t inputServicesCount,
+  uint8_t * outputServices, uint8_t outputServicesCount
+)
 {
   xbee.setSerial(sSerial);
 
@@ -50,9 +54,17 @@ void BaseIC::registerModule(uint8_t * name, uint8_t nameLength, uint8_t * servic
   addr64.setLsb(0xFFFF);
   zbTx.setAddress64(addr64);
 
+  Serial.print("Name Length: ");
+  Serial.println(nameLength);
+  Serial.print("Input Services Count: ");
+  Serial.println(inputServicesCount);
+  Serial.print("Output Services Count:");
+  Serial.println(outputServicesCount);
+
   // Register command:
   // 0\tname\tserviceType\tserviceType\n
-  int payloadSize = 2 + nameLength + 1 + (servicesCount * 2);
+  // 0\tname\tinputServicesCount\tserviceType\tserviceType\toutputServicesCount\tserviceType\n
+  int payloadSize = 2 + nameLength + 2 + (inputServicesCount * 2) + 2 + (outputServicesCount * 2) + 1;
   int payloadIndex = 0;
 
   Serial.print("Payload Size: ");
@@ -69,10 +81,24 @@ void BaseIC::registerModule(uint8_t * name, uint8_t nameLength, uint8_t * servic
 
   payload[payloadIndex++] = '\t';
 
-  for (uint8_t i = 0; i < servicesCount; i++) {
-    payload[payloadIndex++] = services[i];
+  payload[payloadIndex++] = (char) inputServicesCount + '0';
+  payload[payloadIndex++] = '\t';
+  for (uint8_t i = 0; i < inputServicesCount; i++) {
+    payload[payloadIndex++] = inputServices[i];
 
-    if (i < servicesCount - 1) {
+    if (i < inputServicesCount - 1) {
+      payload[payloadIndex++] = '\t';
+    }
+  }
+
+  payload[payloadIndex++] = '\t';
+
+  payload[payloadIndex++] = (char) outputServicesCount + '0';
+  payload[payloadIndex++] = '\t';
+  for (uint8_t i = 0; i < outputServicesCount; i++) {
+    payload[payloadIndex++] = outputServices[i];
+
+    if (i < outputServicesCount - 1) {
       payload[payloadIndex++] = '\t';
     }
   }
@@ -97,7 +123,7 @@ void BaseIC::registerModule(uint8_t * name, uint8_t nameLength, uint8_t * servic
     Serial.println("Got a response!");
     // got a response!
 
-    // should be a znet tx status
+    // should be a xbee tx status
     if (xbee.getResponse().getApiId() == ZB_TX_STATUS_RESPONSE) {
       xbee.getResponse().getZBTxStatusResponse(txStatus);
 
@@ -246,4 +272,10 @@ void BaseIC::sendATCommand(uint8_t *cmd, uint8_t *value) {
   // print "Network ID set to"
   // xbee.at(command='id')
   // print xbee.wait_read_frame()
+}
+
+void BaseIC::startListening(void (*callback)(int, int, uint8_t, uint8_t *)) {
+  // Whenever something is received it will be sent to callback.
+  uint8_t data[1] = {'1'};
+  callback(1, 1, 1, data);
 }

@@ -11,8 +11,24 @@ BaseIC baseIC = BaseIC(sSerial, true);
  * Everthing needs to be characters. The zigbee module encoded and decodes
  * characters better than it does integers.
  */
-uint8_t services[4] = {'1', '2', '3', '4'};
+uint8_t inputServices[1] = {'3'}; // Define one Toggle Input
+uint8_t outputServices[1] = {'3'}; // Define one Toggle Output
 uint8_t name[9] = {'L', 'E', 'D', ' ', 'L', 'I', 'G', 'H', 'T'};
+
+void responseListener(
+  int outputServiceNumber, int outputServiceId,
+  uint8_t valueLength, uint8_t * value
+) {
+  Serial.print("Output Service Number: ");
+  Serial.println(outputServiceNumber);
+  Serial.println("Output Service ID: ");
+  Serial.println(outputServiceId);
+  Serial.println("Value");
+  for (int i = 0; i < valueLength; i++) {
+    Serial.print((char) value[i]);
+  }
+  Serial.println();
+}
 
 void setup()
 {
@@ -23,35 +39,15 @@ void setup()
 
   baseIC.setNetworkID();
 
-  baseIC.registerModule(name, sizeof(name), services, sizeof(services));
+  baseIC.registerModule(
+    name, sizeof(name),
+    inputServices, sizeof(inputServices),
+    outputServices, sizeof(outputServices)
+  );
 
-  /*
-//
-// xbee.tx(
-//   dest_addr_long='\x00\x13\xa2\x00\x41\x55\x37\xc5',
-//   dest_addr='\xff\xfe',
-//   data='Hello Back'
-// )
-// print xbee.wait_read_frame()
-*/
+  // Now we should be able to attach a callback handler that gets called
+  // whenever the module receives anything from the BaseStation
+  baseIC.startListening(&responseListener);
 }
 
-/*
-+++
-ATRE
-ATAP 2
-ATWR
-ATCN
- */
-
-void loop()
-{
-  /*
-  if (sSerial.available()) {
-    Serial.write(sSerial.read());
-  }
-  if (Serial.available()) {
-    sSerial.write(Serial.read());
-  }
-  */
-}
+void loop() {/* Should never get here */}

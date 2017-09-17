@@ -13,7 +13,7 @@ class Peripheral(models.Model):
     address = models.CharField(max_length=50)
     queue = models.CharField(max_length=20)
     name = models.CharField(max_length=50)
-    services = models.ManyToManyField(Service, through='PeriperhalService')
+    services = models.ManyToManyField(Service, through='PeripheralService')
 
     def __str__(self):
         return "{}".format(self.name)
@@ -22,16 +22,26 @@ class Peripheral(models.Model):
         unique_together = ('queue', 'address')
 
 
-class PeriperhalService(models.Model):
+class PeripheralService(models.Model):
+    INPUT = 'I'
+    OUTPUT = 'O'
     DIRECTIONS = (
-        ('I', 'Input'),
-        ('O', 'Output')
+        (INPUT, 'Input'),
+        (OUTPUT, 'Output')
     )
 
-    periperhal = models.ForeignKey(Peripheral, on_delete=models.DO_NOTHING)
+    peripheral = models.ForeignKey(Peripheral, on_delete=models.DO_NOTHING)
     service = models.ForeignKey(Service, on_delete=models.DO_NOTHING)
     service_number = models.IntegerField()
     direction = models.CharField(max_length=1, choices=DIRECTIONS)
+
+    def __str__(self):
+        return "Peripheral: {} Service #{}: {} Direction: {}".format(
+            self.peripheral,
+            self.service_number,
+            self.service,
+            self.get_direction_display()
+        )
 
     class Meta:
         db_table = 'api_peripheral_service'

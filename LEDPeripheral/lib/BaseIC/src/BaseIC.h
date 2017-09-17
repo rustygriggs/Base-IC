@@ -33,7 +33,12 @@ public:
   BaseIC(SoftwareSerial sSerial, bool verbose = false);
   void begin();
   void setNetworkID();
-  void registerModule(uint8_t * name, uint8_t nameLength, uint8_t * services, uint8_t servicesCount);
+  void registerModule(
+    uint8_t * name, uint8_t nameLength,
+    uint8_t * inputServices, uint8_t inputServicesCount,
+    uint8_t * outputServices, uint8_t outputServicesCount
+  );
+  void startListening(void (*callback)(int, int, uint8_t, uint8_t *));
 
 private:
   void setXBeeToAPIMode();
