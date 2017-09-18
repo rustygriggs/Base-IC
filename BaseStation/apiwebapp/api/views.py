@@ -128,8 +128,8 @@ class PeripheralActionView(View):
                                                                   service_number=parsed_data['service_number'],
                                                                   service_id=parsed_data['service_id'],
                                                                   direction=PeripheralService.INPUT)
-            recipes = Recipe.objects.filter(from_peripheral_service=peripheral_service,
-                                            from_value=parsed_data['value'])
+            recipes = Recipe.objects.filter(input_peripheral_service=peripheral_service,
+                                            input_value=parsed_data['value'])
             if recipes:
                 # If we found any recipes attached to the received action then publish them to the remote queue.
                 RemoteQueue.publish_recipes_to_queue(recipes)

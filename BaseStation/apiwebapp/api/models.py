@@ -48,25 +48,25 @@ class PeripheralService(models.Model):
 
 
 class Recipe(models.Model):
-    from_peripheral_service = models.ForeignKey(PeripheralService,
-                                                related_name="from_peripheral_service",
-                                                on_delete=models.DO_NOTHING)
-    from_value = models.CharField(max_length=500)
-    to_peripheral_service = models.ForeignKey(PeripheralService,
-                                              related_name="to_peripheral_service",
-                                              on_delete=models.DO_NOTHING)
-    to_value = models.CharField(max_length=500)
+    input_peripheral_service = models.ForeignKey(PeripheralService,
+                                                 related_name="input_peripheral_service",
+                                                 on_delete=models.DO_NOTHING)
+    input_value = models.CharField(max_length=500)
+    output_peripheral_service = models.ForeignKey(PeripheralService,
+                                                  related_name="output_peripheral_service",
+                                                  on_delete=models.DO_NOTHING)
+    output_value = models.CharField(max_length=500)
     delay = models.IntegerField(default=0)
 
     def __str__(self):
-        return "From Peripheral \"{}\" Service \"{}\" Service Number \"{}\" Value \"{}\" " \
-               "- To Peripheral \"{}\" Service \"{}\" Service Number \"{}\" Value \"{}\"".format(
-            self.from_peripheral_service.peripheral.name,
-            self.from_peripheral_service.service,
-            self.from_peripheral_service.service_number,
-            self.from_value,
-            self.to_peripheral_service.peripheral.name,
-            self.to_peripheral_service.service,
-            self.to_peripheral_service.service_number,
-            self.to_value
+        return "Input Peripheral \"{}\" Service \"{}\" Service Number \"{}\" Value \"{}\" " \
+               "- Output Peripheral \"{}\" Service \"{}\" Service Number \"{}\" Value \"{}\"".format(
+            self.input_peripheral_service.peripheral.name,
+            self.input_peripheral_service.service,
+            self.input_peripheral_service.service_number,
+            self.input_value,
+            self.output_peripheral_service.peripheral.name,
+            self.output_peripheral_service.service,
+            self.output_peripheral_service.service_number,
+            self.output_value
         )
