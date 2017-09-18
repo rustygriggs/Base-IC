@@ -19,10 +19,8 @@ class RecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = (
-            'from_peripheral',
-            'from_peripheral_service'
+            'from_peripheral_service',
             'from_value',
-            'to_peripheral',
             'to_peripheral_service',
             'to_value',
             'delay'

@@ -81,6 +81,7 @@ class Protocol:
 
         # Add missing services
         for service_number, service_id in enumerate(services):
+            # We have to do service_number + 1 because we can't send 0's very easily.
             if not existing_services.filter(service_number=(service_number + 1),
                                             service_id=service_id):
                 try:
@@ -101,6 +102,7 @@ class Protocol:
         for existing_service in existing_services:
             found_service = False
             for service_number, service_id in enumerate(services):
+                # We have to do service_number + 1 because we can't send 0's very easily.
                 if existing_service.service_number == (service_number + 1) and existing_service.service_id == service_id:
                     found_service = True
                     break

@@ -48,12 +48,10 @@ class PeripheralService(models.Model):
 
 
 class Recipe(models.Model):
-    from_peripheral = models.ForeignKey(Peripheral, related_name="from_peripheral", on_delete=models.DO_NOTHING)
     from_peripheral_service = models.ForeignKey(PeripheralService,
                                                 related_name="from_peripheral_service",
                                                 on_delete=models.DO_NOTHING)
     from_value = models.CharField(max_length=500)
-    to_peripheral = models.ForeignKey(Peripheral, related_name="to_peripheral", on_delete=models.DO_NOTHING)
     to_peripheral_service = models.ForeignKey(PeripheralService,
                                               related_name="to_peripheral_service",
                                               on_delete=models.DO_NOTHING)
@@ -63,11 +61,11 @@ class Recipe(models.Model):
     def __str__(self):
         return "From Peripheral \"{}\" Service \"{}\" Service Number \"{}\" Value \"{}\" " \
                "- To Peripheral \"{}\" Service \"{}\" Service Number \"{}\" Value \"{}\"".format(
-            self.from_peripheral,
+            self.from_peripheral_service.peripheral.name,
             self.from_peripheral_service.service,
             self.from_peripheral_service.service_number,
             self.from_value,
-            self.to_peripheral,
+            self.to_peripheral_service.peripheral.name,
             self.to_peripheral_service.service,
             self.to_peripheral_service.service_number,
             self.to_value

@@ -39,10 +39,8 @@ class Migration(migrations.Migration):
             name='Recipe',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('from_peripheral', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='from_peripheral', to='api.Peripheral')),
                 ('from_peripheral_service', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='from_peripheral_service', to='api.PeripheralService')),
                 ('from_value', models.CharField(max_length=500)),
-                ('to_peripheral', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='to_peripheral', to='api.Peripheral')),
                 ('to_peripheral_service', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, related_name='to_peripheral_service', to='api.PeripheralService')),
                 ('to_value', models.CharField(max_length=500)),
                 ('delay', models.IntegerField(default=0)),
