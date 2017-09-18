@@ -1,7 +1,7 @@
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 from django.views.generic import View
-from .serializers import PeripheralSerializer, WorkflowSerializer
-from .models import Peripheral, Service, Workflow, PeripheralService
+from .serializers import PeripheralSerializer, RecipeSerializer
+from .models import Peripheral, Service, Recipe, PeripheralService
 from .validator import Validator
 import json
 from .remote_queue import RemoteQueue
@@ -74,10 +74,7 @@ class ProcessView(View):
         if v.has_errors():
             return HttpResponseBadRequest(v.get_message())
 
-        # In order to be quick about this there is going to be a lot of code here.
-        # This should be moved into it's own class.
-
-        # Everytime we receive a process request it will contains two pieces of data.
+        # Every time we receive a process request it will contains two pieces of data.
         # First will be the data, second will be the address. The queue will come from the URL.
 
         queue = kwargs['queue']
@@ -116,27 +113,27 @@ class PeripheralActionView(View):
 
         parsed_data = json.loads(request.body.decode())
 
-        v = Validator(parsed_data, ['queue', 'address', 'service', 'service_number', 'value'])
+        v = Validator(parsed_data, ['queue', 'address', 'service_id', 'service_number', 'value'])
         if v.has_errors():
             return HttpResponseBadRequest(v.get_message())
 
         # Find peripheral by queue and address
         peripheral = Peripheral.objects.get(queue=parsed_data['queue'], address=parsed_data['address'])
 
-        # If the peripheral exists then lookup the results from the workflow table using the
+        # If the peripheral exists then lookup the results from the recipe table using the
         # service ID, service number, and the service value
-        workflows = []
+        recipes = []
         if peripheral:
-            workflows = Workflow.objects.filter(from_peripheral=peripheral,
-                                                from_service_id=parsed_data['service'],
-                                                from_service_number=parsed_data['service_number'],
-                                                from_value=parsed_data['value'])
+            recipes = Recipe.objects.filter(from_peripheral=peripheral,
+                                            from_service_id=parsed_data['service_id'],
+                                            from_service_number=parsed_data['service_number'],
+                                            from_value=parsed_data['value'])
 
-            if workflows:
-                # If we found any workflows attached to the received action then publish them to the remote queue.
-                RemoteQueue.publish_workflows_to_queue(workflows)
+            if recipes:
+                # If we found any recipes attached to the received action then publish them to the remote queue.
+                RemoteQueue.publish_recipes_to_queue(recipes)
 
-        serializer = WorkflowSerializer(workflows, many=True)
+        serializer = RecipeSerializer(recipes, many=True)
 
-        message = {'success': True, 'workflows': serializer.data}
+        message = {'success': True, 'recipes': serializer.data}
         return JsonResponse(message, safe=False)

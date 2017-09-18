@@ -39,10 +39,10 @@ class Protocol:
         for output_service in self.data[output_services_start:output_services_end]:
             output_services.append(int(output_service))
 
-        # Check to see if the peripheral already exists.
-        peripheral = Peripheral.objects.get(address=self.address, queue=self.queue)
-
         try:
+            # Check to see if the peripheral already exists.
+            peripheral = Peripheral.objects.get(address=self.address, queue=self.queue)
+
             # The peripheral already exists so lets make sure the name is correct.
             if peripheral.name != name:
                 peripheral.name = name
@@ -81,7 +81,7 @@ class Protocol:
 
         # Add missing services
         for service_number, service_id in enumerate(services):
-            if not existing_services.filter(service_number=service_number,
+            if not existing_services.filter(service_number=(service_number + 1),
                                             service_id=service_id):
                 try:
                     service = Service.objects.get(pk=service_id)
@@ -89,7 +89,7 @@ class Protocol:
                     PeripheralService.objects.create(
                         peripheral=peripheral,
                         service=service,
-                        service_number=service_number,
+                        service_number=(service_number + 1),
                         direction=direction
                     )
 
@@ -101,7 +101,7 @@ class Protocol:
         for existing_service in existing_services:
             found_service = False
             for service_number, service_id in enumerate(services):
-                if existing_service.service_number == service_number and existing_service.service_id == service_id:
+                if existing_service.service_number == (service_number + 1) and existing_service.service_id == service_id:
                     found_service = True
                     break
 

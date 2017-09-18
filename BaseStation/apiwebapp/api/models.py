@@ -47,25 +47,28 @@ class PeripheralService(models.Model):
         db_table = 'api_peripheral_service'
 
 
-class Workflow(models.Model):
+class Recipe(models.Model):
     from_peripheral = models.ForeignKey(Peripheral, related_name="from_peripheral", on_delete=models.DO_NOTHING)
-    from_service = models.ForeignKey(Service, related_name="from_service", on_delete=models.DO_NOTHING)
-    from_service_number = models.IntegerField(name="from_service_number")
+    from_peripheral_service = models.ForeignKey(PeripheralService,
+                                                related_name="from_peripheral_service",
+                                                on_delete=models.DO_NOTHING)
     from_value = models.CharField(max_length=500)
     to_peripheral = models.ForeignKey(Peripheral, related_name="to_peripheral", on_delete=models.DO_NOTHING)
-    to_service = models.ForeignKey(Service, related_name="to_service", on_delete=models.DO_NOTHING)
-    to_service_number = models.IntegerField(name="to_service_number")
+    to_peripheral_service = models.ForeignKey(PeripheralService,
+                                              related_name="to_peripheral_service",
+                                              on_delete=models.DO_NOTHING)
     to_value = models.CharField(max_length=500)
+    delay = models.IntegerField(default=0)
 
     def __str__(self):
         return "From Peripheral \"{}\" Service \"{}\" Service Number \"{}\" Value \"{}\" " \
                "- To Peripheral \"{}\" Service \"{}\" Service Number \"{}\" Value \"{}\"".format(
             self.from_peripheral,
-            self.from_service,
-            self.from_service_number,
+            self.from_peripheral_service.service,
+            self.from_peripheral_service.service_number,
             self.from_value,
             self.to_peripheral,
-            self.to_service,
-            self.to_service_number,
+            self.to_peripheral_service.service,
+            self.to_peripheral_service.service_number,
             self.to_value
         )

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Peripheral, Service, Workflow
+from .models import Peripheral, Service, Recipe
 
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -15,13 +15,16 @@ class PeripheralSerializer(serializers.ModelSerializer):
         depth = 1
 
 
-class WorkflowSerializer(serializers.ModelSerializer):
+class RecipeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Workflow
+        model = Recipe
         fields = (
-            'from_peripheral', 'from_service',
-            'from_service_number', 'from_value',
-            'to_peripheral', 'to_service',
-            'to_service_number', 'to_value'
+            'from_peripheral',
+            'from_peripheral_service'
+            'from_value',
+            'to_peripheral',
+            'to_peripheral_service',
+            'to_value',
+            'delay'
         )
         depth = 1
