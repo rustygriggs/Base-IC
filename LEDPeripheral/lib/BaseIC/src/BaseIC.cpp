@@ -25,6 +25,26 @@ void BaseIC::begin()
  ********************************** PUBLIC *************************************
  ******************************************************************************/
 
+void BaseIC::attachListener(void (*listener)(ZBRxResponse &, uintptr_t))
+{
+  // Make sure that any errors are logged to Serial. The address of
+  // Serial is first cast to Print*, since that's what the callback
+  // expects, and then to uintptr_t to fit it inside the data parameter.
+  xbee.onPacketError(printErrorCb, (uintptr_t)(Print*)&Serial);
+  xbee.onTxStatusResponse(printErrorCb, (uintptr_t)(Print*)&Serial);
+  xbee.onZBTxStatusResponse(printErrorCb, (uintptr_t)(Print*)&Serial);
+
+  // These are called when an actual packet received
+  xbee.onZBRxResponse(listener);
+
+  // Print any unhandled response with proper formatting
+  // xbee.onOtherResponse(printResponseCb, (uintptr_t)(Print*)&Serial);
+
+  // Enable this to print the raw bytes for _all_ responses before they
+  // are handled
+  // xbee.onResponse(printRawResponseCb, (uintptr_t)(Print*)&Serial);
+}
+
 void BaseIC::setNetworkID()
 {
   xbee.setSerial(sSerial);
@@ -144,6 +164,11 @@ void BaseIC::registerModule(
     // local XBee did not provide a timely TX Status Response -- should not happen
     // flashLed(errorLed, 2, 50);
   }
+}
+
+void BaseIC::loop()
+{
+  xbee.loop();
 }
 
 /*******************************************************************************
@@ -272,10 +297,4 @@ void BaseIC::sendATCommand(uint8_t *cmd, uint8_t *value) {
   // print "Network ID set to"
   // xbee.at(command='id')
   // print xbee.wait_read_frame()
-}
-
-void BaseIC::startListening(void (*callback)(int, int, uint8_t, uint8_t *)) {
-  // Whenever something is received it will be sent to callback.
-  uint8_t data[1] = {'1'};
-  callback(1, 1, 1, data);
 }

@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <XBee.h>
+#include <Printers.h>
 #include <SoftwareSerial.h>
 
 class BaseIC {
@@ -11,7 +12,7 @@ class BaseIC {
 
   int serialOutputIndex = 0;
 
-  XBee xbee = XBee();
+  XBeeWithCallbacks xbee;
 
   uint8_t idCmd[2] = {'I', 'D'};
   uint8_t networkValue[2] = {0xBE, 0xEF};
@@ -38,7 +39,9 @@ public:
     uint8_t * inputServices, uint8_t inputServicesCount,
     uint8_t * outputServices, uint8_t outputServicesCount
   );
-  void startListening(void (*callback)(int, int, uint8_t, uint8_t *));
+  void loop();
+  void attachListener(void (*listener)(ZBRxResponse &, uintptr_t));
+  static void zbReceive(ZBRxResponse& rx, uintptr_t);
 
 private:
   void setXBeeToAPIMode();
