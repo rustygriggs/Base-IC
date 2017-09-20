@@ -68,8 +68,6 @@ void BaseIC::registerModule(
   /**
    * Set the broadcast address of the coordinator.
    */
-  // addr64.setMsb(0x0013a200);
-  // addr64.setLsb(0x415537C4);
   addr64.setMsb(0x0000);
   addr64.setLsb(0xFFFF);
   zbTx.setAddress64(addr64);
@@ -136,6 +134,80 @@ void BaseIC::registerModule(
 
   zbTx.setPayload(payload);
   zbTx.setPayloadLength(payloadSize);
+
+  xbee.send(zbTx);
+
+  if (xbee.readPacket(500)) {
+    Serial.println("Got a response!");
+    // got a response!
+
+    // should be a xbee tx status
+    if (xbee.getResponse().getApiId() == ZB_TX_STATUS_RESPONSE) {
+      xbee.getResponse().getZBTxStatusResponse(txStatus);
+
+      // get the delivery status, the fifth byte
+      if (txStatus.getDeliveryStatus() == SUCCESS) {
+        Serial.println("Success. Time to celebrate");
+        // flashLed(statusLed, 5, 50);
+      } else {
+        Serial.println("Remote XBee did not receive our packet. Is it on?");
+        // flashLed(errorLed, 3, 500);
+      }
+    }
+  } else if (xbee.getResponse().isError()) {
+    Serial.print("Error reading packet.  Error code: ");
+    Serial.println(xbee.getResponse().getErrorCode());
+  } else {
+    Serial.println("Local XBee did not provide a timely response");
+    // local XBee did not provide a timely TX Status Response -- should not happen
+    // flashLed(errorLed, 2, 50);
+  }
+
+  free(payload);
+}
+
+void BaseIC::sendInt8(int serviceNumber, uint8_t value)
+{
+  /**
+   * Set the broadcast address of the coordinator.
+   */
+  addr64.setMsb(0x0000);
+  addr64.setLsb(0xFFFF);
+  zbTx.setAddress64(addr64);
+
+  String hex = String(value, HEX);
+  Serial.println(hex);
+  char hexChar[3];
+  hex.toCharArray(hexChar, 3);
+
+  // If the value is less than 15 then the value of the hex will be a single
+  // character, otherwise it will be two characters.
+  int payloadLength = (value > 15) ? 7 : 6;
+
+  // Payload will be of the format
+  // serviceID\tserviceNumber\tvalue\n
+  uint8_t * payload = (uint8_t *) malloc(sizeof(char) * (payloadLength));
+
+  payload[0] = '1'; // Hex command
+  payload[1] = '\t';
+  payload[2] = serviceNumber + '0';
+  payload[3] = '\t';
+  payload[4] = hexChar[0];
+  payload[5] = '\n';
+
+  if (value > 15) {
+    payload[5] = hexChar[1];
+    payload[6] = '\n';
+  }
+
+  for (uint8_t i = 0; i < 7; i++) {
+    Serial.print((char) payload[i]);
+  }
+
+  Serial.println();
+
+  zbTx.setPayload(payload);
+  zbTx.setPayloadLength(payloadLength);
 
   xbee.send(zbTx);
 
