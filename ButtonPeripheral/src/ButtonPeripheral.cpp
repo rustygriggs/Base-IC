@@ -87,13 +87,13 @@ void loop() {
   if (valueOne == LOW && ((millis() - buttonOneLastPressed) > DEBOUNCE_DELAY)) {
     buttonOneLastPressed = millis();
     Serial.println("Button one pressed");
-    baseIC.sendInt8(1, 128); // serviceNumber, hexValue
+    baseIC.sendInt8(1, 1); // serviceNumber, hexValue
   }
 
   if (valueTwo == LOW && ((millis() - buttonTwoLastPressed) > DEBOUNCE_DELAY)) {
     buttonTwoLastPressed = millis();
     Serial.println("Button two pressed");
-    baseIC.sendInt8(1, 1); // serviceNumber, hexValue
+    baseIC.sendInt8(1, 2); // serviceNumber, hexValue
   }
 
   // Continuously let xbee read packets and call callbacks.

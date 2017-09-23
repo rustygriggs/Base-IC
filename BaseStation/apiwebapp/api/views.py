@@ -1,11 +1,10 @@
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 from django.views.generic import View
-from .serializers import PeripheralSerializer, RecipeSerializer
-from .models import Peripheral, Service, Recipe, PeripheralService
+from .serializers import PeripheralSerializer
+from .models import Peripheral
 from .validator import Validator
-import json
-from .remote_queue import RemoteQueue
 from .protocol import Protocol
+import json
 
 
 # Create your views here.
@@ -20,40 +19,6 @@ class PeripheralView(View):
         """
 
         serializer = PeripheralSerializer(Peripheral.objects.all(), many=True)
-
-        message = {'success': True, 'peripheral': serializer.data}
-        return JsonResponse(message, safe=False)
-
-    def post(self, request):
-        """
-        This will create a new peripheral from an address and a name provided in the post request.
-        If the address is already being used then the peripheral will just be returned.
-        :return:
-        """
-
-        parsed_data = json.loads(request.body.decode())
-
-        v = Validator(parsed_data, ['queue', 'address', 'name', 'services'])
-        if v.has_errors():
-            return HttpResponseBadRequest(v.get_message())
-
-        # Now we have all the data that we need to create or lookup a peripheral.
-        try:
-            peripheral = Peripheral.objects.get(queue=parsed_data['queue'], address=parsed_data['address'])
-            # If the name is different then we can update the name.
-            if peripheral.name is not parsed_data['name']:
-                peripheral.name = parsed_data['name']
-                peripheral.save()
-
-                # TODO: If services is present then we need to add any that don't exist and remove any that
-                # aren't present but exist in the DB.
-        except Peripheral.DoesNotExist:
-            # Since there was no peripheral found we can create one.
-            peripheral = Peripheral.objects.create(queue=parsed_data['queue'],
-                                                   address=parsed_data['address'],
-                                                   name=parsed_data['name'])
-
-        serializer = PeripheralSerializer(peripheral)
 
         message = {'success': True, 'peripheral': serializer.data}
         return JsonResponse(message, safe=False)
@@ -89,52 +54,3 @@ class ProcessView(View):
             status_code = 400  # 400 Bad Request
 
         return JsonResponse(message, safe=False, status=status_code)
-
-
-class PeripheralDetailsView(View):
-    def get(self, request, *args, **kwargs):
-        """
-        This will list a single peripheral from a parameter in the url called PK
-        """
-
-        v = Validator(kwargs, ['queue', 'address'])
-        if v.has_errors():
-            return HttpResponseBadRequest(v.get_message())
-
-        return HttpResponse("This is a get request")
-
-
-class PeripheralActionView(View):
-    def post(self, request):
-        """
-        This will receive an action from a peripheral and add any results from the workflow's
-        table to Rabbit
-        """
-
-        parsed_data = json.loads(request.body.decode())
-
-        v = Validator(parsed_data, ['queue', 'address', 'service_id', 'service_number', 'value'])
-        if v.has_errors():
-            return HttpResponseBadRequest(v.get_message())
-
-        # Find peripheral by queue and address
-        peripheral = Peripheral.objects.get(queue=parsed_data['queue'], address=parsed_data['address'])
-
-        # If the peripheral exists then lookup the results from the recipe table using the
-        # service ID, service number, and the service value
-        recipes = []
-        if peripheral:
-            peripheral_service = PeripheralService.objects.filter(peripheral=peripheral,
-                                                                  service_number=parsed_data['service_number'],
-                                                                  service_id=parsed_data['service_id'],
-                                                                  direction=PeripheralService.INPUT)
-            recipes = Recipe.objects.filter(input_peripheral_service=peripheral_service,
-                                            input_value=parsed_data['value'])
-            if recipes:
-                # If we found any recipes attached to the received action then publish them to the remote queue.
-                RemoteQueue.publish_recipes_to_queue(recipes)
-
-        serializer = RecipeSerializer(recipes, many=True)
-
-        message = {'success': True, 'recipes': serializer.data}
-        return JsonResponse(message, safe=False)

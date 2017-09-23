@@ -1,4 +1,6 @@
-from .models import PeripheralService, Peripheral, Service
+from .models import PeripheralService, Peripheral, Service, Recipe
+from .remote_queue import RemoteQueue
+from .serializers import RecipeSerializer
 
 
 class ProtocolException(Exception):
@@ -15,6 +17,35 @@ class Protocol:
         # First will be the registration command.
         if self.data[0] == '0':
             return self._process_registration()
+        else:
+            return self._process_command()
+
+    def _process_command(self):
+
+        service_id = self.data[0]
+        service_number = self.data[1]
+        value = self.data[2]
+
+        # Find peripheral by queue and address
+        peripheral = Peripheral.objects.get(queue=self.queue, address=self.address)
+
+        # If the peripheral exists then lookup the results from the recipe table using the
+        # service ID, service number, and the service value
+        recipes = []
+        if peripheral:
+            peripheral_service = PeripheralService.objects.filter(peripheral=peripheral,
+                                                                  service_number=service_number,
+                                                                  service_id=service_id,
+                                                                  direction=PeripheralService.INPUT)
+            recipes = Recipe.objects.filter(input_peripheral_service=peripheral_service,
+                                            input_value=value)
+            if recipes:
+                # If we found any recipes attached to the received action then publish them to the remote queue.
+                RemoteQueue.publish_recipes_to_queue(recipes)
+
+        serializer = RecipeSerializer(recipes, many=True)
+
+        return {'success': True, 'recipes': serializer.data}
 
     def _process_registration(self):
         """
@@ -103,7 +134,7 @@ class Protocol:
             found_service = False
             for service_number, service_id in enumerate(services):
                 # We have to do service_number + 1 because we can't send 0's very easily.
-                if existing_service.service_number == (service_number + 1) and existing_service.service_id == service_id:
+                if existing_service.service_number == service_number + 1 and existing_service.service_id == service_id:
                     found_service = True
                     break
 
