@@ -41,7 +41,7 @@ public:
   );
   void loop();
   void attachListener(void (*listener)(ZBRxResponse &, uintptr_t));
-  static void zbReceive(ZBRxResponse& rx, uintptr_t);
+  void sendInt8(int serviceNumber, uint8_t value);
 
 private:
   void setXBeeToAPIMode();
