@@ -36,9 +36,13 @@ class Protocol:
             peripheral_service = PeripheralService.objects.filter(peripheral=peripheral,
                                                                   service_number=service_number,
                                                                   service_id=service_id,
-                                                                  direction=PeripheralService.INPUT)
+                                                                  direction=PeripheralService.INPUT).first()
+
+            print(repr(Recipe.objects.all()))
+
             recipes = Recipe.objects.filter(input_peripheral_service=peripheral_service,
                                             input_value=value)
+
             if recipes:
                 # If we found any recipes attached to the received action then publish them to the remote queue.
                 RemoteQueue.publish_recipes_to_queue(recipes)

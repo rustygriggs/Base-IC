@@ -75,11 +75,8 @@ WSGI_APPLICATION = 'apiwebapp.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'base_ic',
-        'USER': 'base_ic',
-        'PASSWORD': '12base_ic34',
-        'HOST': 'localhost'
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'base_ic.sqlite3',
     }
 }
 

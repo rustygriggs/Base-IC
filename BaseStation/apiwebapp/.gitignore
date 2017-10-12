@@ -18,3 +18,4 @@ build/
 tests/report/
 assets/bundles/
 webpack-stats.json
+*.sqlite3
