@@ -21,7 +21,6 @@ uint8_t name[9] = {'1', '2', ' ' , 'B', 'u', 't', 't', 'o', 'n'};
 unsigned long buttonOneLastPressed = 0; // Last time that button one was pressed.
 unsigned long buttonTwoLastPressed = 0; // Last time that button two was pressed.
 
-
 void responseListener(ZBRxResponse &rx, uintptr_t)
 {
   // We are going to get three values when we receive a response.
