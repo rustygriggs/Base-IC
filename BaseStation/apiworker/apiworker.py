@@ -19,7 +19,7 @@ from asyncio.futures import InvalidStateError
 CHANNELS = []
 CONNECTION = None
 CONSUMER = None
-URL = 'http://localhost/api/v1/process/zigbee'
+URL = 'http://127.0.0.1:8000/api/v1/process/zigbee'
 
 
 async def setup_connection(loop):

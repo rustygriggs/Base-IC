@@ -3,6 +3,8 @@
 #include <Printers.h>
 #include <SoftwareSerial.h>
 
+#define XBEE_TIMEOUT 150
+
 class BaseIC {
   SoftwareSerial sSerial;
 
@@ -40,7 +42,7 @@ public:
     uint8_t * outputServices, uint8_t outputServicesCount
   );
   void loop();
-  void attachListener(void (*listener)(ZBRxResponse &, uintptr_t));
+  void attachListener(void (*listener)(ZBRxResponse &rx, uintptr_t));
   void sendInt8(int serviceNumber, uint8_t value);
 
 private:
