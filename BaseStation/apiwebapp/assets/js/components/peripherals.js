@@ -2,7 +2,7 @@ import 'whatwg-fetch';
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 
-class ActionPeripheral extends React.Component {
+export class ActionPeripheral extends React.Component {
     render() {
         return (
             <h1>Actionable Peripheral</h1>
