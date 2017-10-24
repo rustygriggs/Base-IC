@@ -1,31 +1,45 @@
 import 'whatwg-fetch';
 import React from 'react';
+import { NavLink } from 'react-router-dom';
+
+class ActionPeripheral extends React.Component {
+    render() {
+        return (
+            <h1>Actionable Peripheral</h1>
+        );
+    }
+}
 
 class Peripheral extends React.Component {
     renderServices() {
         let services = [];
 
-        services = [... services, this.props.input_services.map((service) => {
-            return <li>Service ID: {service.service.id}, Number: #{service.service_number}, Name: {service.service.name} - Input</li>
+        services = [this.props.input_services.map((service) => {
+            return (
+                <li>Input&mdash;Service ID: {service.service.id}, Number: {service.service_number}, Name: {service.service.name}</li>
+            );
         })];
 
         return [... services, this.props.output_services.map((service) => {
-            return <li>Service ID: {service.service.id}, Number: #{service.service_number}, Name: {service.service.name} - Output</li>
-        })]
+            return (
+                <li>Output&mdash;Service ID: {service.service.id}, Number: {service.service_number}, Name: {service.service.name}</li>
+            );
+        })];
     }
 
     render() {
-        return <ul>
+        return (
             <li>
-                ID: {this.props.id}
-                Address: {this.props.address}
-                Name: {this.props.name}
-                Queue: {this.props.queue}
+                Name: <NavLink to={`/peripheral/${this.props.id}`}>{this.props.name}</NavLink>
+                (ID: {this.props.id},
+                 Address: {this.props.address},
+                 Queue: {this.props.queue}
+                )
                 <ul>
                     {this.renderServices()}
                 </ul>
             </li>
-        </ul>
+        );
     }
 }
 
@@ -39,7 +53,7 @@ export class ListPeripherals extends React.Component {
     }
 
     componentDidMount() {
-        fetch('http://raspberrypi.local/api/v1/peripherals/').then((response) => {
+        fetch('/api/v1/peripherals/').then((response) => {
             return response.json();
         }).then((json) => {
             this.setState({
@@ -62,10 +76,9 @@ export class ListPeripherals extends React.Component {
 
     render() {
         return (
-            <div>
+            <ul>
                 {this.renderPeripherals()}
-            </div>
+            </ul>
         )
     }
 }
-

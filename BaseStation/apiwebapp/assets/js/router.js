@@ -1,18 +1,23 @@
 import React from 'react';
 
-import {Router, Route, IndexRoute} from 'react-router';
-
-import {history} from 'react-router/lib/HashHistory';
-
-import {ListPeripherals} from './components/peripherals';
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
+import { ListPeripherals, ActionPeripheral } from './components/peripherals';
+import NoMatch from './components/no-match';
 
 // Layouts
-import {MainLayout} from './components/main-layout';
+import Navigation from './components/navigation';
 
 export default (
-    <Router history={history}>
-        <Route component={MainLayout}>
-            <Route path="/" component={ListPeripherals}/>
-        </Route>
-    </Router>
+    <BrowserRouter>
+        <div>
+            <Navigation/>
+            <div className="container mt-4">
+                <Switch>
+                    <Route path="/" exact={true} component={ListPeripherals}/>
+                    <Route path="/peripheral/:peripheralid" component={ActionPeripheral}/>
+                    <Route component={NoMatch}/>
+                </Switch>
+            </div>
+        </div>
+    </BrowserRouter>
 );
