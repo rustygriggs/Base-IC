@@ -15,7 +15,7 @@ BaseIC baseIC = BaseIC(sSerial, VERBOSE);
  */
 uint8_t inputServices[1] = {'3'}; // Define one Toggle Input
 uint8_t outputServices[1] = {'3'}; // Define one Toggle Output
-uint8_t name[9] = {'L', 'E', 'D', ' ', 'L', 'I', 'G', 'H', 'T'};
+uint8_t name[10] = {'L', 'E', 'D', ' ', 'L', 'I', 'G', 'H', 'T', '2'};
 
 void responseListener(ZBRxResponse &rx, uintptr_t) {
     uint8_t *data = rx.getFrameData() + rx.getDataOffset();
