@@ -22,11 +22,17 @@ uint8_t name[9] = {'1', '2', ' ', 'B', 'u', 't', 't', 'o', 'n'};
 unsigned long buttonOneLastPressed = 0;
 unsigned long buttonTwoLastPressed = 0;
 unsigned long buttonThreeLastPressed = 0;
+unsigned long buttonFourLastPressed = 0;
+unsigned long buttonFiveLastPressed = 0;
+unsigned long buttonSixLastPressed = 0;
 
 // The current values of the buttons.
 int valueOne = 0;
 int valueTwo = 0;
 int valueThree = 0;
+int valueFour = 0;
+int valueFive = 0;
+int valueSix = 0;
 
 void responseListener(ZBRxResponse &rx, uintptr_t) {
     uint8_t *data = rx.getFrameData() + rx.getDataOffset();
@@ -98,6 +104,9 @@ void setup() {
     pinMode(A0, INPUT_PULLUP);
     pinMode(A1, INPUT_PULLUP);
     pinMode(A2, INPUT_PULLUP);
+    pinMode(A3, INPUT_PULLUP);
+    pinMode(A4, INPUT_PULLUP);
+    pinMode(A5, INPUT_PULLUP);
 
     Serial.begin(9600);
 
@@ -117,6 +126,9 @@ void loop() {
     valueOne = digitalRead(A0);
     valueTwo = digitalRead(A1);
     valueThree = digitalRead(A2);
+    valueFour = digitalRead(A3);
+    valueFive = digitalRead(A4);
+    valueSix = digitalRead(A5);
 
     if (valueOne == LOW && ((millis() - buttonOneLastPressed) > DEBOUNCE_DELAY)) {
         buttonOneLastPressed = millis();
@@ -140,6 +152,30 @@ void loop() {
             Serial.println("Button three pressed");
         }
         baseIC.sendInt8(1, 3); // serviceNumber, hexValue
+    }
+
+    if (valueFour == LOW && ((millis() - buttonFourLastPressed) > DEBOUNCE_DELAY)) {
+        buttonFourLastPressed = millis();
+        if (VERBOSE) {
+            Serial.println("Button four pressed");
+        }
+        baseIC.sendInt8(1, 4); // serviceNumber, hexValue
+    }
+
+    if (valueFive == LOW && ((millis() - buttonFiveLastPressed) > DEBOUNCE_DELAY)) {
+        buttonFiveLastPressed = millis();
+        if (VERBOSE) {
+            Serial.println("Button five pressed");
+        }
+        baseIC.sendInt8(1, 5); // serviceNumber, hexValue
+    }
+
+    if (valueSix == LOW && ((millis() - buttonSixLastPressed) > DEBOUNCE_DELAY)) {
+        buttonSixLastPressed = millis();
+        if (VERBOSE) {
+            Serial.println("Button six pressed");
+        }
+        baseIC.sendInt8(1, 6); // serviceNumber, hexValue
     }
 
     // Continuously let xbee read packets and call callbacks.

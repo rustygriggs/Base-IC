@@ -20,7 +20,7 @@ class PeripheralView(View):
 
         serializer = PeripheralSerializer(Peripheral.objects.all(), many=True)
 
-        message = {'success': True, 'peripheral': serializer.data}
+        message = {'success': True, 'peripherals': serializer.data}
         return JsonResponse(message, safe=False)
 
 
