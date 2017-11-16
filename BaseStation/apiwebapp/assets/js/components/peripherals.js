@@ -57,7 +57,7 @@ export class ListPeripherals extends React.Component {
             return response.json();
         }).then((json) => {
             this.setState({
-                'peripherals': json.peripheral
+                'peripherals': json.peripherals
             })
         });
     }
