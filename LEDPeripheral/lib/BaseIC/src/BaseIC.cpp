@@ -128,7 +128,7 @@ void BaseIC::registerModule(uint8_t *name, uint8_t nameLength,
     zbTx.setPayload(payload);
     zbTx.setPayloadLength(payloadSize);
 
-    xbee.sendAndWait(zbTx, XBEE_TIMEOUT);
+    xbee.send(zbTx);
 
     if (xbee.readPacket(500)) {
         // got a response!
