@@ -23,32 +23,26 @@ int position = 0;
 void stepperGo(int timesToLoop, int direction)
 {
     digitalWrite(6,LOW); // Set Enable low
-    digitalWrite(10,LOW); // Set Enable low
 
     if(direction == OPEN)
     {
         digitalWrite(4,HIGH); // Set Dir high
-        digitalWrite(11,LOW); // Set Dir high
     }
     else if(direction == CLOSE)
     {
-        digitalWrite(4,LOW); // Set Dir high
-        digitalWrite(11,HIGH); // Set Dir high
+        digitalWrite(4,LOW); // Set Dir low
     }
 
     // Serial.println("Loop 200 steps (1 rev)");
     for(int x = 0; x < timesToLoop; x++) // Loop 200 times
     {
             digitalWrite(5,HIGH); // Output high
-            digitalWrite(7,HIGH); // Output high
             delayMicroseconds(1500); // Wait
             digitalWrite(5,LOW); // Output low
-            digitalWrite(7,LOW); // Output low
             delayMicroseconds(1500); // Wait
     }
 
         digitalWrite(6,HIGH); // Set Enable high
-        digitalWrite(10,HIGH); // Set Enable high
 }
 
 void responseListener(ZBRxResponse &rx, uintptr_t) {
@@ -163,10 +157,14 @@ void responseListener(ZBRxResponse &rx, uintptr_t) {
 
 void setup() {
     pinMode(13, OUTPUT);
-    pinMode(6,OUTPUT); // Enable
     pinMode(5,OUTPUT); // Step
+    pinMode(6,OUTPUT); // Enable
     pinMode(4,OUTPUT); // Dir
+    //pinMode(10,OUTPUT); // Enable
+    //pinMode(7,OUTPUT); // Step
+    //pinMode(11,OUTPUT); // Dir
     pinMode(2, INPUT_PULLUP); // But
+    pinMode(3, INPUT_PULLUP);
     Serial.begin(9600);
 
     baseIC.begin();
@@ -188,6 +186,24 @@ void loop() {
         Serial.println("Button");
         digitalWrite(6,LOW); // Set Enable low
         digitalWrite(4,HIGH); // Set Dir high
+        // Serial.println("Loop 200 steps (1 rev)");
+        for(int x = 0; x < 200; x++) // Loop 200 times
+        {
+            digitalWrite(5,HIGH); // Output high
+            delayMicroseconds(1500); // Wait
+            digitalWrite(5,LOW); // Output low
+            delayMicroseconds(1500); // Wait
+        }
+        Serial.println("Pause");
+    } else {
+        digitalWrite(6,HIGH); // Set Enable high
+    }
+
+    if(digitalRead(3) == LOW)
+    {
+        Serial.println("Button");
+        digitalWrite(6,LOW); // Set Enable low
+        digitalWrite(4,LOW); // Set Dir high
         // Serial.println("Loop 200 steps (1 rev)");
         for(int x = 0; x < 200; x++) // Loop 200 times
         {
