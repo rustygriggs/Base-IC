@@ -11,7 +11,7 @@ class ServiceSerializer(serializers.ModelSerializer):
 class PeripheralServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = PeripheralService
-        fields = ('service_number', 'direction', 'service')
+        fields = ('service_number', 'direction', 'service', 'service_name')
         depth = 1
 
 

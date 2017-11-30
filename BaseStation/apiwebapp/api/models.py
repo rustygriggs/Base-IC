@@ -34,13 +34,15 @@ class PeripheralService(models.Model):
     service = models.ForeignKey(Service, on_delete=models.DO_NOTHING)
     service_number = models.IntegerField()
     direction = models.CharField(max_length=1, choices=DIRECTIONS)
+    service_name = models.CharField(max_length=50, null=True)
 
     def __str__(self):
-        return "Peripheral: {} Service #{}: {} Direction: {}".format(
+        return "Peripheral: {} Service #{}: {} Direction: {} Service Name {}".format(
             self.peripheral,
             self.service_number,
             self.service,
-            self.get_direction_display()
+            self.get_direction_display(),
+            self.service_name
         )
 
     class Meta:
