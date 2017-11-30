@@ -1,6 +1,7 @@
 from .models import PeripheralService, Peripheral, Service, Recipe
 from .remote_queue import RemoteQueue
 from .serializers import RecipeSerializer
+import sys
 
 
 class ProtocolException(Exception):
@@ -29,26 +30,35 @@ class Protocol:
         # Find peripheral by queue and address
         peripheral = Peripheral.objects.get(queue=self.queue, address=self.address)
 
+
         # If the peripheral exists then lookup the results from the recipe table using the
         # service ID, service number, and the service value
         recipes = []
         if peripheral:
-            peripheral_service = PeripheralService.objects.filter(peripheral=peripheral,
-                                                                  service_number=service_number,
-                                                                  service_id=service_id,
-                                                                  direction=PeripheralService.INPUT).first()
+            try:
+                peripheral_service = PeripheralService.objects.filter(peripheral=peripheral,
+                                                                      service_number=service_number,
+                                                                      service_id=service_id,
+                                                                      direction=PeripheralService.INPUT).first()
 
-            print(repr(Recipe.objects.all()))
-
-            recipes = Recipe.objects.filter(input_peripheral_service=peripheral_service,
-                                            input_value=value)
-
-            if recipes:
+                # If the service is a range service then we dont use the input_value
+                if service_id == '2':
+                    recipes = Recipe.objects.filter(input_peripheral_service=peripheral_service)
+                    # And we will replace the output_value with the input value we received.
+                    for recipe in recipes:
+                        recipe.output_value = value
+                else:
+                    recipes = Recipe.objects.filter(input_peripheral_service=peripheral_service,
+                                                    input_value=value)
+                if recipes:
                 # If we found any recipes attached to the received action then publish them to the remote queue.
-                RemoteQueue.publish_recipes_to_queue(recipes)
+                    RemoteQueue.publish_recipes_to_queue(recipes)
+            except PeripheralService.DoesNotExist:
+                return {'success': False, 'message': 'Peripheral Service was not found'}
 
         serializer = RecipeSerializer(recipes, many=True)
 
+        sys.stdout.flush()
         return {'success': True, 'recipes': serializer.data}
 
     def _process_registration(self):
