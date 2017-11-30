@@ -18,17 +18,18 @@ BaseIC baseIC = BaseIC(sSerial, VERBOSE);
 uint8_t inputServices[1] = {'3'}; // Define one Toggle Input
 uint8_t outputServices[1] = {'4'}; // Define one Toggle Output
 uint8_t name[7] = {'C', 'u', 'r', 't', 'a', 'i', 'n'};
-int position = 0;
+int pos = 0;
+
 
 void stepperGo(int timesToLoop, int direction)
 {
     digitalWrite(6,LOW); // Set Enable low
 
-    if(direction == OPEN)
+    if(direction == CLOSE)
     {
         digitalWrite(4,HIGH); // Set Dir high
     }
-    else if(direction == CLOSE)
+    else if(direction == OPEN)
     {
         digitalWrite(4,LOW); // Set Dir low
     }
@@ -107,51 +108,18 @@ void responseListener(ZBRxResponse &rx, uintptr_t) {
         Serial.print("Value: ");
         Serial.println(buffer);
 
-
-        if (strcmp(buffer, "0") == 0) {
-            // Close
-            Serial.println("Close");
-            if(position == 1) // curtain is half way open
-            {
-                stepperGo(400, CLOSE);
-                position = 0;
-            }
-            else if(position == 2) // curtain is all the way open
-            {
-                stepperGo(800, CLOSE);
-                position = 0;
-            }
+        float nextPos = atoi(buffer);
+        if(nextPos > pos)
+        {
+            float percentage = (nextPos - pos)/100;
+            stepperGo(percentage*800, OPEN);
         }
-
-        if (strcmp(buffer, "50") == 0) {
-            // Open 50%
-            Serial.println("Open 50%");
-            if(position == 0)
-            {
-                stepperGo(400, OPEN); // curtain closed
-                position = 1;
-            }
-            else if(position == 2)
-            {
-                stepperGo(400, CLOSE); // curtain all the way open
-                position = 1;
-            }
+        else if(atoi(buffer) < pos)
+        {
+            float percentage = (pos - nextPos)/100;
+            stepperGo(percentage*800, CLOSE);
         }
-
-        if (strcmp(buffer, "100") == 0) {
-            // Open all the way
-            Serial.println("Open all the way");
-            if(position == 0) // curtain is closed
-            {
-                stepperGo(800, OPEN);
-                position = 2;
-            }
-            else if(position == 1) // curtain is half way open
-            {
-                stepperGo(400, OPEN);
-                position = 2;
-            }
-        }
+        pos = nextPos;
     }
 }
 
