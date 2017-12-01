@@ -4,7 +4,8 @@ from .serializers import PeripheralSerializer, RecipeSerializer
 from .models import Peripheral, Recipe
 from .validator import Validator
 from .protocol import Protocol
-import json
+import json, sys
+
 
 
 # Create your views here.
@@ -57,23 +58,54 @@ class ProcessView(View):
 
 
 class RecipeView(View):
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
         """
         This will return a list of all the existing recipes.
         """
 
-        serializer = RecipeSerializer(Recipe.objects.all(), many=True)
+        if 'id' in kwargs:
+            serializer = RecipeSerializer(Recipe.objects.get(pk=kwargs['id']))
+        else:
+            serializer = RecipeSerializer(Recipe.objects.all(), many=True)
 
         message = {'success': True, 'recipes': serializer.data}
         return JsonResponse(message, safe=False)
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         """
         This will create a new recipe.
         """
 
         parsed_data = json.loads(request.body.decode())
-        v = Validator(parsed_data, ['input_peripheral_service_id', 'input_value', 'output_peripheral_service_id', 'output_value'])
+        if 'id' in kwargs:
+            # If id is present then we are updating a recipe.
+            return self._update_recipe(kwargs['id'], parsed_data)
+        else:
+            # Otherwise, we are creating a new recipe.
+            return self._update_recipe(parsed_data)
+
+    def _update_recipe(self, id, data):
+        allowed_updates = ['input_value', 'output_value', 'delay']
+
+        recipe = Recipe.objects.get(pk=id)
+
+        for column, value in data.items():
+            if column not in allowed_updates:
+                return HttpResponseBadRequest('Tried to update a field that is not allowed to be updated.')
+
+            setattr(recipe, column, value)
+
+        try:
+            recipe.save()
+            serializer = RecipeSerializer(recipe)
+            return JsonResponse({'success': True, 'recipe': serializer.data})
+        except ValueError as err:
+            return HttpResponseBadRequest(err)
+
+    def _create_recipe(self, data):
+        return HttpResponseBadRequest("Not implemented")
+
+        v = Validator(data, ['input_peripheral_service_id', 'input_value', 'output_peripheral_service_id', 'output_value'])
         if v.has_errors():
             return HttpResponseBadRequest(v.get_message())
 
@@ -85,4 +117,3 @@ class RecipeView(View):
             status_code = 400  # 400 Bad Request
 
         return JsonResponse(message, safe=False, status=status_code)
-

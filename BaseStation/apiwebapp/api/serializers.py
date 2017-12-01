@@ -11,7 +11,7 @@ class ServiceSerializer(serializers.ModelSerializer):
 class PeripheralServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = PeripheralService
-        fields = ('service_number', 'direction', 'service', 'service_name')
+        fields = ('id', 'service_number', 'direction', 'service', 'service_name')
         depth = 1
 
 
@@ -25,7 +25,7 @@ class DeepPeripheralServiceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PeripheralService
-        fields = ('service_number', 'direction', 'service', 'peripheral', 'service_name')
+        fields = ('id', 'service_number', 'direction', 'service', 'peripheral', 'service_name')
         depth = 2
 
 
@@ -72,6 +72,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = (
+            'id',
             'input_service',
             'input_value',
             'output_service',

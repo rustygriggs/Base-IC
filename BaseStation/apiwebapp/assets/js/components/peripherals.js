@@ -14,13 +14,13 @@ class Peripheral extends React.Component {
   renderServices() {
     let services = [this.props.input_services.map((service) => {
       return (
-        <li>Input&mdash;Service ID: {service.service.id}, Number: {service.service_number}, Name: {service.service.name}</li>
+        <li>Input&mdash;Number: {service.service_number}, Name: {service.service.name}</li>
       );
     })];
 
     return [...services, this.props.output_services.map((service) => {
       return (
-        <li>Output&mdash;Service ID: {service.service.id}, Number: {service.service_number}, Name: {service.service.name}</li>
+        <li>Output&mdash;Number: {service.service_number}, Name: {service.service.name}</li>
       );
     })];
   }
@@ -53,7 +53,7 @@ export class ListPeripherals extends React.Component {
   componentDidMount() {
     axios.get('/api/v1/peripherals/').then((response) => {
       this.setState({
-        'peripherals': response.peripherals
+        'peripherals': response.data.peripherals
       })
     });
   }
