@@ -1,7 +1,7 @@
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 from django.views.generic import View
-from .serializers import PeripheralSerializer
-from .models import Peripheral
+from .serializers import PeripheralSerializer, RecipeSerializer
+from .models import Peripheral, Recipe
 from .validator import Validator
 from .protocol import Protocol
 import json
@@ -54,3 +54,35 @@ class ProcessView(View):
             status_code = 400  # 400 Bad Request
 
         return JsonResponse(message, safe=False, status=status_code)
+
+
+class RecipeView(View):
+    def get(self, request):
+        """
+        This will return a list of all the existing recipes.
+        """
+
+        serializer = RecipeSerializer(Recipe.objects.all(), many=True)
+
+        message = {'success': True, 'recipes': serializer.data}
+        return JsonResponse(message, safe=False)
+
+    def post(self, request):
+        """
+        This will create a new recipe.
+        """
+
+        parsed_data = json.loads(request.body.decode())
+        v = Validator(parsed_data, ['input_peripheral_service_id', 'input_value', 'output_peripheral_service_id', 'output_value'])
+        if v.has_errors():
+            return HttpResponseBadRequest(v.get_message())
+
+        # DO STUFF WITH THE DATA HERE
+        message = {'success': False}
+
+        status_code = 200
+        if not message['success']:
+            status_code = 400  # 400 Bad Request
+
+        return JsonResponse(message, safe=False, status=status_code)
+
