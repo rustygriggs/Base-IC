@@ -166,7 +166,7 @@ void BaseIC::registerModule(uint8_t *name, uint8_t nameLength,
     free(payload);
 }
 
-void BaseIC::sendInt8(int serviceNumber, uint8_t value) {
+void BaseIC::sendInt8(int serviceId, int serviceNumber, uint8_t value) {
     /**
      * Set the broadcast address of the coordinator.
      */
@@ -181,7 +181,7 @@ void BaseIC::sendInt8(int serviceNumber, uint8_t value) {
     // serviceID\tserviceNumber\tvalue\n
     uint8_t payload[7];
 
-    payload[0] = '1'; // Hex command
+    payload[0] = serviceId + '0'; // Command type
     payload[1] = '\t';
     payload[2] = serviceNumber + '0';
     payload[3] = '\t';
