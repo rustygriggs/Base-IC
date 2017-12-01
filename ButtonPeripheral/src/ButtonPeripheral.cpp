@@ -14,9 +14,9 @@ BaseIC baseIC = BaseIC(sSerial, VERBOSE);
  * Everthing needs to be characters. The zigbee module encoded and decodes
  * characters better than it does integers.
  */
-uint8_t inputServices[1] = {'1'}; // Define one HEX Input
+uint8_t inputServices[9] = {'3', '3', '3', '3', '3', '3', '3', '3', '3'}; // Define nine toggle inputs
 uint8_t outputServices[1] = {'3'}; // Define one toggle output for the LED
-uint8_t name[9] = {'1', '2', ' ', 'B', 'u', 't', 't', 'o', 'n'};
+uint8_t name[8] = {'9', ' ', 'B', 'u', 't', 't', 'o', 'n'};
 
 // Keep track of the last time that any button was pressed.
 unsigned long buttonOneLastPressed = 0;
@@ -135,7 +135,7 @@ void loop() {
         if (VERBOSE) {
             Serial.println("Button one pressed");
         }
-        baseIC.sendInt8(1, 1); // serviceNumber, hexValue
+        baseIC.sendInt8(3, 1, 1); // serviceId, serviceNumber, value
     }
 
     if (valueTwo == LOW && ((millis() - buttonTwoLastPressed) > DEBOUNCE_DELAY)) {
@@ -143,7 +143,7 @@ void loop() {
         if (VERBOSE) {
             Serial.println("Button two pressed");
         }
-        baseIC.sendInt8(1, 2); // serviceNumber, hexValue
+        baseIC.sendInt8(3, 2, 1); // serviceId, serviceNumber, value
     }
 
     if (valueThree == LOW && ((millis() - buttonThreeLastPressed) > DEBOUNCE_DELAY)) {
@@ -151,7 +151,7 @@ void loop() {
         if (VERBOSE) {
             Serial.println("Button three pressed");
         }
-        baseIC.sendInt8(1, 3); // serviceNumber, hexValue
+        baseIC.sendInt8(3, 3, 1); // serviceId, serviceNumber, value
     }
 
     if (valueFour == LOW && ((millis() - buttonFourLastPressed) > DEBOUNCE_DELAY)) {
@@ -159,7 +159,7 @@ void loop() {
         if (VERBOSE) {
             Serial.println("Button four pressed");
         }
-        baseIC.sendInt8(1, 4); // serviceNumber, hexValue
+        baseIC.sendInt8(3, 4, 1); // serviceId, serviceNumber, value
     }
 
     if (valueFive == LOW && ((millis() - buttonFiveLastPressed) > DEBOUNCE_DELAY)) {
@@ -167,7 +167,7 @@ void loop() {
         if (VERBOSE) {
             Serial.println("Button five pressed");
         }
-        baseIC.sendInt8(1, 5); // serviceNumber, hexValue
+        baseIC.sendInt8(3, 5, 1); // serviceId, serviceNumber, value
     }
 
     if (valueSix == LOW && ((millis() - buttonSixLastPressed) > DEBOUNCE_DELAY)) {
@@ -175,7 +175,7 @@ void loop() {
         if (VERBOSE) {
             Serial.println("Button six pressed");
         }
-        baseIC.sendInt8(1, 6); // serviceNumber, hexValue
+        baseIC.sendInt8(3, 6, 1); // serviceId, serviceNumber, value
     }
 
     // Continuously let xbee read packets and call callbacks.
