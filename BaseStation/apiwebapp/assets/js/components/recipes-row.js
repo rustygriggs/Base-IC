@@ -7,14 +7,19 @@ export class RecipesRow extends React.Component {
   constructor(props) {
     super(props);
 
+    console.log(props);
+
     this.updateServiceName = this.updateServiceName.bind(this);
     this.updateInputValue = this.updateInputValue.bind(this);
     this.updateOutputValue = this.updateOutputValue.bind(this);
   }
 
   updateServiceName(id, newName) {
-    // api_peripheral_service
-    console.log('update service id:', id, 'new name:', newName);
+    axios.post('/api/v1/peripherals/services/' + id, {
+      service_name: newName
+    }).catch(() => {
+      alert('There was an error. Please refresh and try again.');
+    });
   }
 
   updateInputValue(id, newInputValue) {
@@ -34,12 +39,12 @@ export class RecipesRow extends React.Component {
   }
 
   render() {
-    let inputService = <button className="btn">N/A</button>;
+    let inputService = "N/A";
     if (this.props.recipe.input_service.service.id !== 2) {
       inputService = <EditText id={this.props.recipe.id} value={this.props.recipe.input_value} handle={this.updateInputValue}/>
     }
 
-    let outputService = <button className="btn">N/A</button>;
+    let outputService = "N/A";
     if (this.props.recipe.output_service.service.id !== 2) {
       outputService = <EditText id={this.props.recipe.id} value={this.props.recipe.output_value} handle={this.updateOutputValue}/>
     }
@@ -50,7 +55,7 @@ export class RecipesRow extends React.Component {
           {this.props.recipe.input_service.peripheral.name}
         </td>
         <td>
-          <EditText id={this.props.recipe.input_service.id} value={this.props.recipe.input_service.service_name} handle={this.updateServiceName}/>
+          #{this.props.recipe.input_service.service_number} <EditText id={this.props.recipe.input_service.id} value={this.props.recipe.input_service.service_name} handle={this.updateServiceName}/>
         </td>
         <td>
           {this.props.recipe.input_service.service.name}
@@ -66,6 +71,9 @@ export class RecipesRow extends React.Component {
         </td>
         <td>
           {outputService}
+        </td>
+        <td>
+          <a href="javascript:;" onClick={() => this.props.deleteRecipe(this.props.recipe.id)}>Delete</a>
         </td>
       </tr>
     );

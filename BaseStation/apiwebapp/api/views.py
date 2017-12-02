@@ -1,11 +1,10 @@
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 from django.views.generic import View
-from .serializers import PeripheralSerializer, RecipeSerializer
-from .models import Peripheral, Recipe
+from .serializers import PeripheralSerializer, PeripheralServiceSerializer, RecipeSerializer
+from .models import Peripheral, PeripheralService, Recipe
 from .validator import Validator
 from .protocol import Protocol
 import json, sys
-
 
 
 # Create your views here.
@@ -23,6 +22,36 @@ class PeripheralView(View):
 
         message = {'success': True, 'peripherals': serializer.data}
         return JsonResponse(message, safe=False)
+
+
+class PeripheralServiceView(View):
+    def post(self, request, *args, **kwargs):
+        """
+        Allow a peripheral service to be updated.
+        """
+
+        allowed_updates = ['service_name']
+
+        parsed_data = json.loads(request.body.decode())
+
+        try:
+            peripheral_service = PeripheralService.objects.get(pk=kwargs['id'])
+
+            for column, value in parsed_data.items():
+                if column not in allowed_updates:
+                    return HttpResponseBadRequest('Tried to update a field that is not allowed to be updated.')
+
+                setattr(peripheral_service, column, value)
+
+            try:
+                peripheral_service.save()
+                serializer = PeripheralServiceSerializer(peripheral_service)
+                return JsonResponse({'success': True, 'recipe': serializer.data})
+            except ValueError as err:
+                return HttpResponseBadRequest(err)
+
+        except PeripheralService.DoesNotExist:
+            return HttpResponseBadRequest("Requested peripheral service does not exist")
 
 
 class ProcessView(View):
@@ -82,38 +111,62 @@ class RecipeView(View):
             return self._update_recipe(kwargs['id'], parsed_data)
         else:
             # Otherwise, we are creating a new recipe.
-            return self._update_recipe(parsed_data)
+            return self._create_recipe(parsed_data)
+
+    def delete(self, request, *args, **kwargs):
+        """
+        This will delete a recipe
+        """
+
+        if 'id' in kwargs:
+            try:
+                recipe = Recipe.objects.get(pk=kwargs['id'])
+                recipe.delete()
+
+                return JsonResponse({'success': True})
+            except Exception:
+                return HttpResponseBadRequest("Unable to delete the requested recipe")
+
+        else:
+            return HttpResponseBadRequest("Must provide the id of the recipe to delete")
 
     def _update_recipe(self, id, data):
         allowed_updates = ['input_value', 'output_value', 'delay']
 
-        recipe = Recipe.objects.get(pk=id)
-
-        for column, value in data.items():
-            if column not in allowed_updates:
-                return HttpResponseBadRequest('Tried to update a field that is not allowed to be updated.')
-
-            setattr(recipe, column, value)
-
         try:
-            recipe.save()
-            serializer = RecipeSerializer(recipe)
-            return JsonResponse({'success': True, 'recipe': serializer.data})
-        except ValueError as err:
-            return HttpResponseBadRequest(err)
+            recipe = Recipe.objects.get(pk=id)
+
+            for column, value in data.items():
+                if column not in allowed_updates:
+                    return HttpResponseBadRequest('Tried to update a field that is not allowed to be updated.')
+
+                setattr(recipe, column, value)
+
+            try:
+                recipe.save()
+                serializer = RecipeSerializer(recipe)
+                return JsonResponse({'success': True, 'recipe': serializer.data})
+            except ValueError as err:
+                return HttpResponseBadRequest(err)
+
+        except Recipe.DoesNotExist:
+            return HttpResponseBadRequest("Requested recipe does not exist");
 
     def _create_recipe(self, data):
-        return HttpResponseBadRequest("Not implemented")
-
         v = Validator(data, ['input_peripheral_service_id', 'input_value', 'output_peripheral_service_id', 'output_value'])
         if v.has_errors():
             return HttpResponseBadRequest(v.get_message())
 
-        # DO STUFF WITH THE DATA HERE
-        message = {'success': False}
+        try:
+            recipe = Recipe()
+            recipe.input_peripheral_service_id = data['input_peripheral_service_id']
+            recipe.input_value = data['input_value']
+            recipe.output_peripheral_service_id = data['output_peripheral_service_id']
+            recipe.output_value = data['output_value']
+            recipe.save()
 
-        status_code = 200
-        if not message['success']:
-            status_code = 400  # 400 Bad Request
+            serializer = RecipeSerializer(recipe)
 
-        return JsonResponse(message, safe=False, status=status_code)
+            return JsonResponse({'success': True, 'recipe': serializer.data})
+        except ValueError as err:
+            return HttpResponseBadRequest(err)

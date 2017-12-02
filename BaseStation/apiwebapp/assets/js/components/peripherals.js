@@ -1,6 +1,7 @@
 import axios from 'axios';
 import React from 'react';
 import {NavLink} from 'react-router-dom';
+import {EditText} from "./edit-text";
 
 export class ActionPeripheral extends React.Component {
   render() {
@@ -11,16 +12,34 @@ export class ActionPeripheral extends React.Component {
 }
 
 class Peripheral extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.updateServiceName = this.updateServiceName.bind(this);
+  }
+
+  updateServiceName(id, newName) {
+    axios.post('/api/v1/peripherals/services/' + id, {
+      service_name: newName
+    }).catch(() => {
+      alert('There was an error. Please refresh and try again.');
+    });
+  }
+
   renderServices() {
     let services = [this.props.input_services.map((service) => {
       return (
-        <li>Input&mdash;Number: {service.service_number}, Name: {service.service.name}</li>
+        <li>
+          Input&mdash;Number: {service.service_number}, Type: {service.service.name}, Name: <EditText id={service.id} value={service.service_name} handle={this.updateServiceName}/>
+        </li>
       );
     })];
 
     return [...services, this.props.output_services.map((service) => {
       return (
-        <li>Output&mdash;Number: {service.service_number}, Name: {service.service.name}</li>
+        <li>
+          Output&mdash;Number: {service.service_number}, Type: {service.service.name}, Name: <EditText id={service.id} value={service.service_name} handle={this.updateServiceName}/>
+        </li>
       );
     })];
   }

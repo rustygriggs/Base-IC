@@ -28,8 +28,13 @@ export class EditText extends React.Component {
   }
 
   saveValue() {
-    console.log(this.props);
-    this.props.handle(this.props.id, this.state.value);
+    let value = this.state.value;
+
+    if (this.state.value == null) {
+      value = "";
+    }
+
+    this.props.handle(this.props.id, value);
 
     this.setState({
       editing: false,
@@ -38,12 +43,12 @@ export class EditText extends React.Component {
 
   render() {
     if (this.state.editing) {
-      return <input value={this.state.value}
+      return <input value={this.state.value || ''}
                     ref={input => input && input.focus()}
                     onChange={this.updateValue}
                     onBlur={this.saveValue}/>
     }
 
-    return <button className="btn btn-link" onClick={this.beginEditing}>{this.state.value}</button>
+    return <a href="javascript:;" onClick={this.beginEditing}>{this.state.value || 'NONE'}</a>;
   }
 }
