@@ -15,8 +15,8 @@ BaseIC baseIC = BaseIC(sSerial, VERBOSE);
  * Everthing needs to be characters. The zigbee module encoded and decodes
  * characters better than it does integers.
  */
-uint8_t inputServices[1] = {'3'}; // Define one Toggle Input
-uint8_t outputServices[1] = {'4'}; // Define one Toggle Output
+uint8_t inputServices[1] = {'2'}; // Define one Range Input
+uint8_t outputServices[1] = {'2'}; // Define one Range Output
 uint8_t name[7] = {'C', 'u', 'r', 't', 'a', 'i', 'n'};
 int pos = 0;
 
@@ -102,9 +102,9 @@ void responseListener(ZBRxResponse &rx, uintptr_t) {
         Serial.println(buffer);
     }
 
-    // If the response is for the toggle service and is service number 1.
+    // If the response is for the range service and is service number 1.
     // THEN TOGGLE!!!
-    if (serviceId == 4 && serviceNumber == 1) {
+    if (serviceId == 2 && serviceNumber == 1) {
         Serial.print("Value: ");
         Serial.println(buffer);
 
