@@ -12,14 +12,20 @@ BaseIC baseIC = BaseIC(sSerial, VERBOSE);
  * Everthing needs to be characters. The zigbee module encoded and decodes
  * characters better than it does integers.
  */
-uint8_t inputServices[1] = {'3'}; // Define one Toggle Input
-uint8_t outputServices[1] = {'3'}; // Define one Toggle Output
-uint8_t name[8] = {'D', 'E', 'A', 'D', 'L', 'O', 'C', 'K'};
-const int enable = 7;
-const int dir = 10;
+uint8_t inputServices[2] = {'3', '3'}; // Define one Toggle Input
+uint8_t outputServices[2] = {'3', '3'}; // Define one Toggle Output
+uint8_t name[4] = {'D', 'o', 'o', 'r'};
+const int doorEn = 3;
+const int doorDirA = 4;
+const int doorDirB = 5;
+const int doorOpenDelay = 4500; //will need to be changed
+const int doorCloseDelay = 6000;
+const int enable = 7; //"D" on the driver board
+const int dir = 10; // "P" on the driver board
 const int motorDelay = 350;
 const int buttonPin = 2;
 const int ledPin = 13;      // the number of the LED pin
+int isLocked = 0;
 int isOpen = 0;
 
 // Variables will change:
@@ -35,7 +41,7 @@ long debounceDelay = 50;    // the debounce time; increase if the output flicker
 
 void open()
 {
-    if (!isOpen) {
+    if (!isLocked) {
         Serial.println("in open function");
         digitalWrite(dir, HIGH); //open direction
         Serial.println("motor about to be turned on");
@@ -44,13 +50,13 @@ void open()
         Serial.println("motor about to be turned off");
         digitalWrite(enable, HIGH); //turn motor off.
         Serial.println("leaving open function");
-        isOpen = 1;
+        isLocked = 1;
     }
 }
 
 void close()
 {
-    if (isOpen) {
+    if (isLocked) {
         Serial.println("in close function");
         digitalWrite(dir, LOW); //close direction
         Serial.println("motor about to be turned on");
@@ -59,17 +65,51 @@ void close()
         Serial.println("motor about to be turned off");
         digitalWrite(enable, LOW); //turn motor off.
         Serial.println("leaving close function");
-        isOpen = 0;
+        isLocked = 0;
     }
 }
 
 void toggle() {
-    if (!isOpen) {
+    if (!isLocked) {
         digitalWrite(13, LOW);
         open();
     } else {
         digitalWrite(13, HIGH);
         close();
+    }
+}
+
+void openDoor() {
+    if (!isOpen) {
+        Serial.println("open door");
+        digitalWrite(doorDirA, HIGH);
+        digitalWrite(doorDirB, LOW);
+        digitalWrite(doorEn, HIGH);
+        delay(doorOpenDelay);
+        digitalWrite(doorEn, LOW);
+        isOpen = 1;
+    }
+}
+
+void closeDoor() {
+    if (isOpen) {
+        // todo: close door
+        Serial.println("close door");
+        digitalWrite(doorDirA, LOW);
+        digitalWrite(doorDirB, HIGH);
+        digitalWrite(doorEn, HIGH);
+        delay(doorCloseDelay);
+        digitalWrite(doorEn, LOW);
+        isOpen = 0;
+    }
+}
+
+void toggleDoor() {
+    if (!isOpen) {
+        openDoor();
+    }
+    else {
+        closeDoor();
     }
 }
 
@@ -134,13 +174,30 @@ void responseListener(ZBRxResponse &rx, uintptr_t) {
     // THEN TOGGLE!!!
     if (serviceId == 3 && serviceNumber == 1) {
         if (strcmp(buffer, "01") == 0) {
+            Serial.println("open deadlock");
             open();
         }
         if (strcmp(buffer, "02") == 0) {
+            Serial.println("close deadlock");
             close();
         }
         if (strcmp(buffer, "03") == 0) {
+            Serial.println("toggle deadlock");
             toggle();
+        }
+    }
+    if (serviceId == 3 && serviceNumber == 2) {
+        if (strcmp(buffer, "01") == 0) {
+            Serial.println("open door");
+            openDoor();
+        }
+        if (strcmp(buffer, "02") == 0) {
+            Serial.println("close door");
+            closeDoor();
+        }
+        if (strcmp(buffer, "03") == 0) {
+            Serial.println("toggle door");
+            toggleDoor();
         }
     }
 }
@@ -154,6 +211,9 @@ void setup()
   pinMode(dir, OUTPUT);
   pinMode(buttonPin, INPUT);
   pinMode(ledPin, OUTPUT);
+  pinMode(doorDirA, OUTPUT);
+  pinMode(doorDirB, OUTPUT);
+  pinMode(doorEn, OUTPUT);
   // set initial LED state
   digitalWrite(ledPin, ledState);
   digitalWrite(enable, LOW); //initialize
