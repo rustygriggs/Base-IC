@@ -67,7 +67,7 @@ export class RecipesRow extends React.Component {
           {this.props.recipe.output_service.peripheral.name}
         </td>
         <td>
-          {this.props.recipe.output_service.service.name}
+	  {this.props.recipe.output_service.service.name} (#{this.props.recipe.output_service.service_number})
         </td>
         <td>
           {outputService}

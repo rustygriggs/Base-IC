@@ -51,7 +51,7 @@ export class RecipesTable extends React.Component {
           <th>Input Value</th>
 
           <th>Peripheral Name</th>
-          <th>Service Type</th>
+          <th>Service Type (#)</th>
           <th>Output Value</th>
           <th>Actions</th>
         </tr>
