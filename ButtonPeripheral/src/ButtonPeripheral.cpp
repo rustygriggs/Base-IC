@@ -9,6 +9,16 @@
 SoftwareSerial sSerial(8, 9); // RX, TX
 BaseIC baseIC = BaseIC(sSerial, VERBOSE);
 
+#define BUTTON_ONE_PIN 4
+#define BUTTON_TWO_PIN 3
+#define BUTTON_THREE_PIN 2
+#define BUTTON_FOUR_PIN 7
+#define BUTTON_FIVE_PIN 6
+#define BUTTON_SIX_PIN 5
+#define BUTTON_SEVEN_PIN 12
+#define BUTTON_EIGHT_PIN 11
+#define BUTTON_NINE_PIN 10
+
 /**
  * Register a hex, range, toggle, and read service.
  * Everthing needs to be characters. The zigbee module encoded and decodes
@@ -25,6 +35,9 @@ unsigned long buttonThreeLastPressed = 0;
 unsigned long buttonFourLastPressed = 0;
 unsigned long buttonFiveLastPressed = 0;
 unsigned long buttonSixLastPressed = 0;
+unsigned long buttonSevenLastPressed = 0;
+unsigned long buttonEightLastPressed = 0;
+unsigned long buttonNineLastPressed = 0;
 
 // The current values of the buttons.
 int valueOne = 0;
@@ -33,6 +46,9 @@ int valueThree = 0;
 int valueFour = 0;
 int valueFive = 0;
 int valueSix = 0;
+int valueSeven = 0;
+int valueEight = 0;
+int valueNine = 0;
 
 void responseListener(ZBRxResponse &rx, uintptr_t) {
     uint8_t *data = rx.getFrameData() + rx.getDataOffset();
@@ -101,12 +117,15 @@ void responseListener(ZBRxResponse &rx, uintptr_t) {
 
 void setup() {
     pinMode(13, OUTPUT);
-    pinMode(A0, INPUT_PULLUP);
-    pinMode(A1, INPUT_PULLUP);
-    pinMode(A2, INPUT_PULLUP);
-    pinMode(A3, INPUT_PULLUP);
-    pinMode(A4, INPUT_PULLUP);
-    pinMode(A5, INPUT_PULLUP);
+    pinMode(BUTTON_ONE_PIN, INPUT_PULLUP);
+    pinMode(BUTTON_TWO_PIN, INPUT_PULLUP);
+    pinMode(BUTTON_THREE_PIN, INPUT_PULLUP);
+    pinMode(BUTTON_FOUR_PIN, INPUT_PULLUP);
+    pinMode(BUTTON_FIVE_PIN, INPUT_PULLUP);
+    pinMode(BUTTON_SIX_PIN, INPUT_PULLUP);
+    pinMode(BUTTON_SEVEN_PIN, INPUT_PULLUP);
+    pinMode(BUTTON_EIGHT_PIN, INPUT_PULLUP);
+    pinMode(BUTTON_NINE_PIN, INPUT_PULLUP);
 
     Serial.begin(9600);
 
@@ -123,12 +142,15 @@ void setup() {
 
 void loop() {
     // Get the updated value :
-    valueOne = digitalRead(A0);
-    valueTwo = digitalRead(A1);
-    valueThree = digitalRead(A2);
-    valueFour = digitalRead(A3);
-    valueFive = digitalRead(A4);
-    valueSix = digitalRead(A5);
+    valueOne = digitalRead(BUTTON_ONE_PIN);
+    valueTwo = digitalRead(BUTTON_TWO_PIN);
+    valueThree = digitalRead(BUTTON_THREE_PIN);
+    valueFour = digitalRead(BUTTON_FOUR_PIN);
+    valueFive = digitalRead(BUTTON_FIVE_PIN);
+    valueSix = digitalRead(BUTTON_SIX_PIN);
+    valueSeven = digitalRead(BUTTON_SEVEN_PIN);
+    valueEight = digitalRead(BUTTON_EIGHT_PIN);
+    valueNine = digitalRead(BUTTON_NINE_PIN);
 
     if (valueOne == LOW && ((millis() - buttonOneLastPressed) > DEBOUNCE_DELAY)) {
         buttonOneLastPressed = millis();
@@ -176,6 +198,30 @@ void loop() {
             Serial.println("Button six pressed");
         }
         baseIC.sendInt8(3, 6, 1); // serviceId, serviceNumber, value
+    }
+
+    if (valueSeven == LOW && ((millis() - buttonSevenLastPressed) > DEBOUNCE_DELAY)) {
+        buttonSevenLastPressed = millis();
+        if (VERBOSE) {
+            Serial.println("Button seven pressed");
+        }
+        baseIC.sendInt8(3, 7, 1); // serviceId, serviceNumber, value
+    }
+
+    if (valueEight == LOW && ((millis() - buttonEightLastPressed) > DEBOUNCE_DELAY)) {
+        buttonEightLastPressed = millis();
+        if (VERBOSE) {
+            Serial.println("Button eight pressed");
+        }
+        baseIC.sendInt8(3, 8, 1); // serviceId, serviceNumber, value
+    }
+
+    if (valueNine == LOW && ((millis() - buttonNineLastPressed) > DEBOUNCE_DELAY)) {
+        buttonNineLastPressed = millis();
+        if (VERBOSE) {
+            Serial.println("Button nine pressed");
+        }
+        baseIC.sendInt8(3, 9, 1); // serviceId, serviceNumber, value
     }
 
     // Continuously let xbee read packets and call callbacks.

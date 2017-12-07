@@ -17,9 +17,9 @@ BaseIC baseIC = BaseIC(sSerial, VERBOSE);
  * Everthing needs to be characters. The zigbee module encoded and decodes
  * characters better than it does integers.
  */
-uint8_t inputServices[1] = {'1'}; // Define one Toggle Input
-uint8_t outputServices[1] = {'3'}; // Define one Hex Output
-uint8_t name[10] = {'F', 'O', 'U', 'R', ' ', 'R', 'E', 'L', 'A', 'Y'};
+uint8_t inputServices[4] = {'3', '3', '3', '3'}; // Define four Toggle Input
+uint8_t outputServices[1] = {'1'}; // Define one Hex Output
+uint8_t name[10] = {'F', 'o', 'u', 'r', ' ', 'R', 'e', 'l', 'a', 'y'};
 
 void responseListener(ZBRxResponse &rx, uintptr_t) {
     uint8_t *data = rx.getFrameData() + rx.getDataOffset();
@@ -79,7 +79,7 @@ void responseListener(ZBRxResponse &rx, uintptr_t) {
 
     // If the response is for the hex service and is service number 1,
     // then toggle the appropriate relay.
-    if (serviceId == 3 && serviceNumber == 1) {
+    if (serviceId == 1 && serviceNumber == 1) {
         // Toggle relay 1
         if (strcmp(buffer, "01") == 0) {
             if (digitalRead(RELAY1_PIN) == HIGH) {
