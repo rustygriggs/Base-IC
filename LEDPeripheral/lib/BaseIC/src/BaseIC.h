@@ -3,7 +3,7 @@
 // #include <Printers.h>
 #include <SoftwareSerial.h>
 
-#define XBEE_TIMEOUT 150
+#define XBEE_TIMEOUT 250
 
 class BaseIC {
   SoftwareSerial sSerial;
