@@ -15,9 +15,9 @@ BaseIC baseIC = BaseIC(sSerial, VERBOSE);
 uint8_t inputServices[2] = {'3', '3'}; // Define one Toggle Input
 uint8_t outputServices[2] = {'3', '3'}; // Define one Toggle Output
 uint8_t name[4] = {'D', 'o', 'o', 'r'};
-const int doorEn = 3;
-const int doorDirA = 4;
-const int doorDirB = 5;
+const int doorEn = 3; //enA
+const int doorDirA = 4; //in1
+const int doorDirB = 5; //in2
 const int doorOpenDelay = 4500; //will need to be changed
 const int doorCloseDelay = 6000;
 const int enable = 7; //"D" on the driver board
@@ -41,7 +41,7 @@ long debounceDelay = 50;    // the debounce time; increase if the output flicker
 
 void open()
 {
-    if (!isLocked) {
+    if (!isLocked && !isOpen) {
         Serial.println("in open function");
         digitalWrite(dir, HIGH); //open direction
         Serial.println("motor about to be turned on");
@@ -56,7 +56,7 @@ void open()
 
 void close()
 {
-    if (isLocked) {
+    if (isLocked && !isOpen) {
         Serial.println("in close function");
         digitalWrite(dir, LOW); //close direction
         Serial.println("motor about to be turned on");
@@ -80,7 +80,7 @@ void toggle() {
 }
 
 void openDoor() {
-    if (!isOpen) {
+    if (!isOpen && !isLocked) {
         Serial.println("open door");
         digitalWrite(doorDirA, HIGH);
         digitalWrite(doorDirB, LOW);
@@ -92,8 +92,7 @@ void openDoor() {
 }
 
 void closeDoor() {
-    if (isOpen) {
-        // todo: close door
+    if (isOpen && !isLocked) {
         Serial.println("close door");
         digitalWrite(doorDirA, LOW);
         digitalWrite(doorDirB, HIGH);
