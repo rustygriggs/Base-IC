@@ -30,8 +30,8 @@ class PeripheralService(models.Model):
         (OUTPUT, 'Output')
     )
 
-    peripheral = models.ForeignKey(Peripheral, on_delete=models.DO_NOTHING)
-    service = models.ForeignKey(Service, on_delete=models.DO_NOTHING)
+    peripheral = models.ForeignKey(Peripheral, on_delete=models.CASCADE)
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)
     service_number = models.IntegerField()
     direction = models.CharField(max_length=1, choices=DIRECTIONS)
     service_name = models.CharField(max_length=50, null=True)
@@ -52,11 +52,11 @@ class PeripheralService(models.Model):
 class Recipe(models.Model):
     input_peripheral_service = models.ForeignKey(PeripheralService,
                                                  related_name="input_peripheral_service",
-                                                 on_delete=models.DO_NOTHING)
+                                                 on_delete=models.CASCADE)
     input_value = models.CharField(max_length=500)
     output_peripheral_service = models.ForeignKey(PeripheralService,
                                                   related_name="output_peripheral_service",
-                                                  on_delete=models.DO_NOTHING)
+                                                  on_delete=models.CASCADE)
     output_value = models.CharField(max_length=500)
     delay = models.IntegerField(default=0)
 
