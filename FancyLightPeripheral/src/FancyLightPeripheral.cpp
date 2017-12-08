@@ -6,17 +6,17 @@
   #include <avr/power.h>
 #endif
 
-// SoftwareSerial sSerial(8, 9); // RX, TX
+SoftwareSerial sSerial(8, 9); // RX, TX
 
-// #define VERBOSE false
+#define VERBOSE false
 
-// BaseIC baseIC = BaseIC(sSerial, VERBOSE);
+BaseIC baseIC = BaseIC(sSerial, VERBOSE);
 
 /**
  * Register a hex, range, toggle, and read service.
  * Everthing needs to be characters. The zigbee module encoded and decodes
  * characters better than it does integers.
- *
+ */
 uint8_t inputServices[1] = {'3'}; // Define one Toggle Input
 uint8_t outputServices[1] = {'3'}; // Define one Toggle Output
 uint8_t name[10] = {'L', 'E', 'D', ' ', 'L', 'I', 'G', 'H', 'T', '2'};
@@ -87,7 +87,6 @@ void responseListener(ZBRxResponse &rx, uintptr_t) {
         }
     }
 }
-*/
 
 #define PIN 3
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, PIN, NEO_GRB + NEO_KHZ800);
@@ -96,17 +95,16 @@ void setup() {
     pinMode(13, OUTPUT);
     Serial.begin(9600);
 
-    // baseIC.begin();
+    baseIC.begin();
 
-    // baseIC.setNetworkID();
+    baseIC.setNetworkID();
 
-    // baseIC.registerModule(
-    // name, sizeof(name),
-    // inputServices, sizeof(inputServices),
-    // outputServices, sizeof(outputServices));
+    baseIC.registerModule(
+    name, sizeof(name),
+    inputServices, sizeof(inputServices),
+    outputServices, sizeof(outputServices));
 
-    // baseIC.attachListener(responseListener);
-
+    baseIC.attachListener(responseListener);
 
     strip.begin();
     strip.show(); // Initialize all pixels to 'off'
@@ -199,7 +197,7 @@ void theaterChaseRainbow(uint8_t wait) {
 
 void loop() {
     // Continuously let xbee read packets and call callbacks.
-    // baseIC.loop();
+    baseIC.loop();
 
     // Some example procedures showing how to display to the pixels:
     colorWipe(strip.Color(255, 0, 0), 50); // Red
