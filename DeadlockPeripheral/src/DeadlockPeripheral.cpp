@@ -25,6 +25,8 @@ const int dir = 10; // "P" on the driver board
 const int motorDelay = 350;
 const int buttonPin = 2;
 const int ledPin = 13;      // the number of the LED pin
+const int sensorPin = 1; //distane sensor
+int val = 0;
 int isLocked = 0;
 int isOpen = 0;
 
@@ -41,30 +43,24 @@ long debounceDelay = 50;    // the debounce time; increase if the output flicker
 
 void open()
 {
-    if (!isLocked && !isOpen) {
-        Serial.println("in open function");
+    if (!isLocked) {
+        Serial.println("in open deadlock function");
         digitalWrite(dir, HIGH); //open direction
-        Serial.println("motor about to be turned on");
         digitalWrite(enable, LOW); //turn motor on
         delay(motorDelay); //wait one second
-        Serial.println("motor about to be turned off");
         digitalWrite(enable, HIGH); //turn motor off.
-        Serial.println("leaving open function");
         isLocked = 1;
     }
 }
 
 void close()
 {
-    if (isLocked && !isOpen) {
-        Serial.println("in close function");
+    if (isLocked) {
+        Serial.println("in close deadlock function");
         digitalWrite(dir, LOW); //close direction
-        Serial.println("motor about to be turned on");
         digitalWrite(enable, HIGH); //turn motor on
         delay(motorDelay); //wait one second
-        Serial.println("motor about to be turned off");
         digitalWrite(enable, LOW); //turn motor off.
-        Serial.println("leaving close function");
         isLocked = 0;
     }
 }
@@ -92,7 +88,8 @@ void openDoor() {
 }
 
 void closeDoor() {
-    if (isOpen && !isLocked) {
+    val = analogRead(sensorPin);
+    if (isOpen && val < 400) {
         Serial.println("close door");
         digitalWrite(doorDirA, LOW);
         digitalWrite(doorDirB, HIGH);
@@ -255,11 +252,11 @@ void loop() {
           ledState = !ledState;
           if (ledState == HIGH) {
            Serial.println("before open function");
-           open();
+           //open();
           }
           else {
            Serial.println("before close function");
-           close();
+           //close();
           }
         }
       }
