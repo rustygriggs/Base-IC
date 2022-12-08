@@ -1,5 +1,5 @@
 asynqp==0.5.1
-certifi==2017.7.27.1
+certifi==2022.12.7
 chardet==3.0.4
 Django==1.11.6
 django-webpack-loader==0.5.0
